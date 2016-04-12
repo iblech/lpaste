@@ -1,5 +1,6 @@
 {-# OPTIONS -Wall -fno-warn-name-shadowing #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 -- | Paste controller.
@@ -26,10 +27,12 @@ import Control.Monad           ((>=>))
 import Control.Monad.IO
 import Data.ByteString         (ByteString)
 import Data.ByteString.UTF8    (toString)
+import Data.List               (nub)
 import Data.Maybe
 import Data.Monoid.Operator    ((++))
 import Data.String             (fromString)
 import Data.Text               (Text)
+import Data.Traversable        (for)
 import Prelude                 hiding ((++))
 import Safe
 import Snap.App
@@ -43,30 +46,42 @@ handle revision = do
   justOrGoHome pid $ \(pid) -> do
       html <- cache (if revision then Key.Revision pid else Key.Paste pid) $ do
         getPrivate <- getParam "show_private"
-        paste <- model $ if isJust getPrivate
-	      	       	    then getPrivatePasteById (pid)
-	      	       	    else getPasteById (pid)
-        case paste of
-          Nothing -> return Nothing
-          Just paste -> do
-            hints <- model $ getHints (pasteId paste)
-            annotations <- model $ getAnnotations (pid)
-            revisions <- model $ getRevisions (pid)
-            ahints <- model $ mapM (getHints.pasteId) annotations
-            rhints <- model $ mapM (getHints.pasteId) revisions
-            chans <- model $ getChannels
-            langs <- model $ getLanguages
-            return $ Just $ page PastePage {
-              ppChans       = chans
-            , ppLangs       = langs
-            , ppAnnotations = annotations
-            , ppRevisions   = revisions
-            , ppHints       = hints
-            , ppPaste       = paste
-            , ppAnnotationHints = ahints
-            , ppRevisionsHints = rhints
-	    , ppRevision = revision
-            }
+        mbPaste <- model $ if isJust getPrivate
+                              then getPrivatePasteById pid
+                              else getPasteById pid
+        for mbPaste $ \original -> model $ do
+          originalHints <- getHints (pasteId original)
+          latest <- getLatestVersion original
+          latestHints <- getHints (pasteId latest)
+          revisions <- getRevisions (pid)
+          rhints <- mapM (getHints.pasteId) revisions
+          chans <- getChannels
+          langs <- getLanguages
+          annotations <- getAnnotations (pid)
+          annotations' <- for annotations $ \ann -> do
+              pcOriginalHints  <- getHints (pasteId ann)
+              pcLatest         <- getLatestVersion ann
+              pcLatestHints    <- getHints (pasteId pcLatest)
+              pcRevisions      <- getRevisions (pasteId ann)
+              pcRevisionsHints <- mapM (getHints.pasteId) pcRevisions
+              return PasteContext {
+                pcOriginal    = ann,
+                pcAnnotations = [],
+                .. }
+          let pasteContext = PasteContext {
+                pcOriginal        = original,
+                pcOriginalHints   = originalHints,
+                pcLatest          = latest,
+                pcLatestHints     = latestHints,
+                pcRevisions       = revisions,
+                pcRevisionHints   = rhints,
+                pcAnnotations     = annotations' }
+          return $ page PastePage {
+            ppChans    = chans
+          , ppLangs    = langs
+          , ppPaste    = pasteContext
+          , ppRevision = revision
+          }
       justOrGoHome html outputText
 
 -- | Control paste annotating / submission.
@@ -75,7 +90,17 @@ pasteForm channels languages defChan annotatePaste editPaste = do
   params <- getParams
   submittedPrivate <- isJust <$> getParam "private"
   submittedPublic <- isJust <$> getParam "public"
-  revisions <- maybe (return []) (model . getRevisions) (fmap pasteId (annotatePaste <|> editPaste))
+  let mbOriginal = annotatePaste <|> editPaste
+  mbLatest <- model $ traverse getLatestVersion mbOriginal
+  -- If we're editing an annotation, we want to know the “parent paste”
+  -- (e.g. if paste A has been annotated with B, and editPaste = B, then
+  -- parentPasteId = A). This is because when when we're editing an
+  -- annotation, after editing we want to redirect to the original paste, not
+  -- the annotation.
+  let parentPasteId = mbOriginal >>= \p ->
+                        case pasteType p of
+                          AnnotationOf x -> Just x
+                          _ -> Nothing
   let formlet = PasteFormlet {
           pfSubmitted = submittedPrivate || submittedPublic
         , pfErrors    = []
@@ -83,9 +108,9 @@ pasteForm channels languages defChan annotatePaste editPaste = do
         , pfChannels  = channels
         , pfLanguages = languages
         , pfDefChan   = defChan
-        , pfAnnotatePaste = annotatePaste
-        , pfEditPaste = editPaste
-	, pfContent = fmap pastePaste (listToMaybe revisions)
+        , pfAnnotatePaste = (,) <$> annotatePaste <*> mbLatest
+        , pfEditPaste     = (,) <$> editPaste     <*> mbLatest
+	, pfContent = pastePaste <$> mbLatest
         }
       (getValue,_) = pasteFormlet formlet
       value = formletValue getValue params
@@ -98,12 +123,14 @@ pasteForm channels languages defChan annotatePaste editPaste = do
     Just paste -> do
       spamrating <- model $ spamRating paste
       if spamrating >= spamMaxLevel
-      	 then goSpamBlocked
-	 else do
-	    resetCache Key.Home
-	    maybe (return ()) (resetCache . Key.Paste) $ pasteSubmitId paste
-	    pid <- model $ createPaste languages channels paste spamrating submittedPublic
-	    maybe (return ()) redirectToPaste pid
+         then goSpamBlocked
+         else do
+           resetCache Key.Home
+           mapM_ (resetCache . Key.Paste) $
+             nub $ catMaybes [pasteSubmitId paste, parentPasteId]
+           pid <- model $ createPaste languages channels paste
+                                      spamrating submittedPublic
+           mapM_ redirectToPaste (parentPasteId <|> pid)
   return html
 
 -- | Go back to the home page with a spam indication.

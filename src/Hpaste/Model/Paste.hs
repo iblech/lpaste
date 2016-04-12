@@ -16,6 +16,8 @@ module Hpaste.Model.Paste
   ,createPaste
   ,getAnnotations
   ,getRevisions
+  ,getLatestVersionById
+  ,getLatestVersion
   ,getPaginatedPastes
   ,countPublicPastes
   ,generateHints
@@ -117,6 +119,18 @@ getRevisions pid = do
         ,"ORDER BY created DESC"]
         (pid,pid)
 
+-- | Get latest version of a paste by its id.
+getLatestVersionById :: PasteId -> HPModel (Maybe Paste)
+getLatestVersionById pid = traverse getLatestVersion =<< getPasteById pid
+
+-- | Get latest version of a paste.
+getLatestVersion :: Paste -> HPModel Paste
+getLatestVersion paste = do
+  revs <- getRevisions (pasteId paste)
+  return $ case revs of
+    (rev:_) -> rev
+    _ -> paste
+
 -- | Create a paste, or update an existing one.
 createOrUpdate :: [Language] -> [Channel] -> PasteSubmit -> Integer -> Bool -> HPModel (Maybe PasteId)
 createOrUpdate langs chans paste@PasteSubmit{..} spamrating public = do
@@ -128,6 +142,12 @@ createOrUpdate langs chans paste@PasteSubmit{..} spamrating public = do
 -- | Create a new paste (possibly annotating an existing one).
 createPaste :: [Language] -> [Channel] -> PasteSubmit -> Integer -> Bool -> HPModel (Maybe PasteId)
 createPaste langs chans ps@PasteSubmit{..} spamrating public = do
+  -- We need the title of the latest version of the paste for the
+  -- announcement (the announcement has the form “<previous version's title>
+  -- revised to <new version's title>”.
+  prevTitle <- case ann_pid <|> rev_pid of
+    Nothing  -> return Nothing
+    Just pid -> fmap pasteTitle <$> getLatestVersionById pid
   pid <- generatePasteId public
   res <- single ["INSERT INTO paste"
                 ,"(id,title,author,content,channel,language,annotation_of,revision_of,spamrating,public)"
@@ -140,7 +160,7 @@ createPaste langs chans ps@PasteSubmit{..} spamrating public = do
   just (pasteSubmitChannel >>= lookupChan) $ \chan ->
     just res $ \pid -> do
       when (spamrating < spamMinLevel) $
-        announcePaste pasteSubmitType (channelName chan) ps pid
+        announcePaste pasteSubmitType (channelName chan) ps prevTitle pid
   return (pasteSubmitId <|> res)
 
   where lookupChan cid = find ((==cid).channelId) chans
@@ -177,10 +197,9 @@ createHints ps pid = do
          ,show hint)
 
 -- | Announce the paste.
-announcePaste :: PasteType -> Text -> PasteSubmit -> PasteId -> HPModel ()
-announcePaste ptype channel PasteSubmit{..} pid = do
+announcePaste :: PasteType -> Text -> PasteSubmit -> Maybe Text -> PasteId -> HPModel ()
+announcePaste ptype channel PasteSubmit{..} prevTitle pid = do
   conf <- env modelStateConfig
-  verb <- getVerb
   unless (seemsLikeSpam pasteSubmitTitle || seemsLikeSpam pasteSubmitAuthor) $ do
     announcer <- env modelStateAnns
     io $ announce announcer pasteSubmitAuthor channel $ do
@@ -192,18 +211,14 @@ announcePaste ptype channel PasteSubmit{..} pid = do
 	         NormalPaste -> showPid pid
                  AnnotationOf apid -> showPid apid ++ "#a" ++ showPid pid
                  RevisionOf apid -> showPid apid
-        getVerb = case ptype of
-          NormalPaste -> return $ "pasted"
-          AnnotationOf pid -> do
-            paste <- getPasteById pid
-	    return $ case paste of
-	      Just Paste{..} -> "annotated “" ++ pasteTitle ++ "” with"
-              Nothing -> "annotated a paste with"
-          RevisionOf pid -> do
-            paste <- getPasteById pid
-	    return $ case paste of
-	      Just Paste{..} -> "revised “" ++ pasteTitle ++ "”:"
-              Nothing -> "revised a paste:"
+        verb = case ptype of
+          NormalPaste -> "pasted"
+          AnnotationOf _ -> case prevTitle of
+	    Just s  -> "annotated “" ++ s ++ "” with"
+            Nothing -> "annotated a paste with"
+          RevisionOf _ -> case prevTitle of
+	    Just s  -> "revised “" ++ s ++ "”:"
+            Nothing -> "revised a paste:"
         showPid (PasteId p) = pack $ show $ (p :: Integer)
         seemsLikeSpam = T.isInfixOf "http://"
 
