@@ -44,4 +44,5 @@ reported pn rs key = do
                       td $ href ("/" ++ show reportPasteId ++ "?show_private=true") $ show reportPasteId
 		      td $ href ("/delete?id=" ++ show reportPasteId ++ "&key=" ++ key) ("Delete"::String)
                       td $ href ("/mark-spam?id=" ++ show reportPasteId ++ "&key=" ++ key) ("Mark as Spam"::String)
+                      td $ href ("/disregard?id=" ++ show reportPasteId ++ "&key=" ++ key) ("Disregard"::String)
                       td $ toHtml reportComments

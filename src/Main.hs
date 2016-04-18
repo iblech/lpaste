@@ -63,6 +63,7 @@ serve config pool ans = route routes where
            ,("/activity",run Activity.handle)
            ,("/diff/:this/:that",run Diff.handle)
 	   ,("/delete",run Report.handleDelete)
+           ,("/disregard",run Report.handleDisregard)
            ,("/mark-spam",run Report.handleReportSpam)
            ,("/channel/:channel/rss",run Rss.handle)
            ]

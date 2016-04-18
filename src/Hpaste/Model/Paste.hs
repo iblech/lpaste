@@ -11,6 +11,7 @@ module Hpaste.Model.Paste
   (getLatestPastes
   ,getPasteById
   ,getPrivatePasteById
+  ,disregardReport
   ,createOrUpdate
   ,deletePaste
   ,markSpamPaste
@@ -53,6 +54,11 @@ import System.FilePath
 deletePaste :: Integer -> HPModel ()
 deletePaste pid =
   void (exec ["DELETE FROM paste WHERE id = ?"] (Only pid))
+
+disregardReport :: Integer -> HPModel ()
+disregardReport pid =
+  void (exec ["DELETE FROM report WHERE paste = ?"] (Only pid))
+
 
 markSpamPaste :: Integer -> HPModel ()
 markSpamPaste pid =
