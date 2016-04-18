@@ -58,7 +58,7 @@ countPublicPastes mauthor = do
   rows <- single ["SELECT COUNT(*)"
                  ,"FROM public_toplevel_paste"
 		 ,"WHERE (? IS NULL) OR (author = ?) AND spamrating < ?"]
-		 (mauthor,mauthor,spamMinLevel)
+		 (mauthor,mauthor,spam)
   return $ fromMaybe 0 rows
 
 -- | Get the latest pastes.
@@ -70,7 +70,7 @@ getLatestPastes channel =
         ,"AND channel = ? or ? is null"
 	,"ORDER BY created DESC"
 	,"LIMIT 20"]
-       (spamMinLevel,channel,channel)
+       (spam,channel,channel)
 
 -- | Get some paginated pastes.
 getPaginatedPastes :: Maybe String -> Pagination -> HPModel (Pagination,[Paste])
@@ -82,7 +82,7 @@ getPaginatedPastes mauthor pn@Pagination{..} = do
 		,"ORDER BY created DESC"
 		,"OFFSET " ++ show (max 0 (pnCurrentPage - 1) * pnPerPage)
 		,"LIMIT " ++ show pnPerPage]
-		(mauthor,mauthor,spamMinLevel)
+		(mauthor,mauthor,spam)
   return (pn { pnTotal = total },rows)
 
 -- | Get a paste by its id.
@@ -132,7 +132,7 @@ getLatestVersion paste = do
     _ -> paste
 
 -- | Create a paste, or update an existing one.
-createOrUpdate :: [Language] -> [Channel] -> PasteSubmit -> Integer -> Bool -> HPModel (Maybe PasteId)
+createOrUpdate :: [Language] -> [Channel] -> PasteSubmit -> Double -> Bool -> HPModel (Maybe PasteId)
 createOrUpdate langs chans paste@PasteSubmit{..} spamrating public = do
   case pasteSubmitId of
     Nothing  -> createPaste langs chans paste spamrating public
@@ -140,7 +140,7 @@ createOrUpdate langs chans paste@PasteSubmit{..} spamrating public = do
                    return $ Just pid
 
 -- | Create a new paste (possibly annotating an existing one).
-createPaste :: [Language] -> [Channel] -> PasteSubmit -> Integer -> Bool -> HPModel (Maybe PasteId)
+createPaste :: [Language] -> [Channel] -> PasteSubmit -> Double -> Bool -> HPModel (Maybe PasteId)
 createPaste langs chans ps@PasteSubmit{..} spamrating public = do
   -- We need the title of the latest version of the paste for the
   -- announcement (the announcement has the form “<previous version's title>
@@ -159,7 +159,7 @@ createPaste langs chans ps@PasteSubmit{..} spamrating public = do
   when (lang == Just "haskell") $ just res $ createHints ps
   just (pasteSubmitChannel >>= lookupChan) $ \chan ->
     just res $ \pid -> do
-      when (spamrating < spamMinLevel) $
+      when (spamrating < spam) $
         announcePaste pasteSubmitType (channelName chan) ps prevTitle pid
   return (pasteSubmitId <|> res)
 
