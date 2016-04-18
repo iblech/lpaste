@@ -1,4 +1,4 @@
-Name:                hpaste
+Name:                lpaste
 Version:             1.2.0
 stability:           Stable
 Synopsis:            Haskell paste web site.
@@ -7,7 +7,7 @@ Description: Haskell paste web site. Includes: syntax highlighting for
 	     revisions, diffs between revisions, announcement to IRC channels,
 	     browsing of author's pastes, spam reporting/deletion,
 	     SpamAssassin-based spam protection, secret/private pastes.
-Homepage:            http://hpaste.org/
+Homepage:            http://lpaste.net/
 License:             GPL
 Author:              Chris Done <chrisdone@gmail.com>
 Maintainer:          Chris Done <chrisdone@gmail.com>
@@ -16,7 +16,7 @@ Category:            Web
 Build-type:          Simple
 Cabal-version:       >=1.2
 
-Executable hpaste
+Executable lpaste
   Main-is:           Main.hs
   Ghc-options:       -threaded -Wall -O2 -fno-warn-name-shadowing
   Hs-source-dirs:    src

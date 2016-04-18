@@ -1,6 +1,6 @@
-# hpaste
+# lpaste
 
-The codebase for http://lpaste.org/
+The codebase for http://lpaste.net/
 
 ## Build
 
@@ -8,14 +8,14 @@ The codebase for http://lpaste.org/
 
 ## Database setup
 
-    $ sudo su postgres --command 'createuser hpaste -P'
-    $ sudo su postgres --command 'createdb hpaste -O hpaste'
-    $ cat sql/schema.sql | psql -U hpaste -h 127.0.0.1 -d hpaste
+    $ sudo su postgres --command 'createuser lpaste -P'
+    $ sudo su postgres --command 'createdb lpaste -O lpaste'
+    $ cat sql/schema.sql | psql -U lpaste -h 127.0.0.1 -d lpaste
 
 ## Configuration & Running
 
-    $ cp hpaste.conf.sample hpaste.conf
+    $ cp lpaste.conf.sample lpaste.conf
 
-Edit hpaste.conf.
+Edit lpaste.conf.
 
-    $ stack exec hpaste hpaste.conf
+    $ stack exec lpaste lpaste.conf

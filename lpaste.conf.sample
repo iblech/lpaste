@@ -1,9 +1,9 @@
 [POSTGRESQL]
 host = 127.0.0.1
 port = 5432
-user = hpaste
-pass = hpaste
-db = hpaste
+user = lpaste
+pass = lpaste
+db = lpaste
 
 [ANNOUNCE]
 user = yourdomain
@@ -13,11 +13,11 @@ port = 6667
 
 [WEB]
 domain = yourdomain.org
-cache = /tmp/hpaste-cache
+cache = /tmp/lpaste-cache
 
 [DEV]
-commits = https://github.com/chrisdone/hpaste/commits/master.atom
-repo_url = https://github.com/chrisdone/hpaste
+commits = https://github.com/chrisdone/lpaste/commits/master.atom
+repo_url = https://github.com/chrisdone/lpaste
 
 [IRC]
 log_dir = irc_logs
