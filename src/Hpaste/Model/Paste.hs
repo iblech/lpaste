@@ -13,6 +13,7 @@ module Hpaste.Model.Paste
   ,getPrivatePasteById
   ,createOrUpdate
   ,deletePaste
+  ,markSpamPaste
   ,createPaste
   ,getAnnotations
   ,getRevisions
@@ -50,7 +51,14 @@ import System.Directory
 import System.FilePath
 
 deletePaste :: Integer -> HPModel ()
-deletePaste pid = void (exec ["DELETE FROM paste WHERE id = ?"] (Only pid))
+deletePaste pid =
+  void (exec ["DELETE FROM paste WHERE id = ?"] (Only pid))
+
+markSpamPaste :: Integer -> HPModel ()
+markSpamPaste pid =
+  do void (exec ["UPDATE paste SET spamrating = 1 WHERE id = ? "]
+                (Only pid))
+     void (exec ["DELETE FROM report WHERE paste = ?"] (Only pid))
 
 -- | Count public pastes.
 countPublicPastes :: Maybe String -> HPModel Integer

@@ -35,7 +35,7 @@ reported pn rs key = do
   darkSection "Reported pastes" $ do
     pagination pn
     table ! aClass "latest-pastes" $ do
-      tr $ mapM_ (th . toHtml) $ words "Date Paste Delete Comments"
+      tr $ mapM_ (th . toHtml) $ words "Date Paste Delete Spam Comments"
       reports rs
     pagination pn
 
@@ -43,4 +43,5 @@ reported pn rs key = do
                       td $ toHtml $ showDateTime reportDate
                       td $ href ("/" ++ show reportPasteId ++ "?show_private=true") $ show reportPasteId
 		      td $ href ("/delete?id=" ++ show reportPasteId ++ "&key=" ++ key) ("Delete"::String)
+                      td $ href ("/mark-spam?id=" ++ show reportPasteId ++ "&key=" ++ key) ("Mark as Spam"::String)
                       td $ toHtml reportComments

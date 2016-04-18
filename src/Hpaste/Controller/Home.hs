@@ -11,8 +11,10 @@ import Hpaste.Types
 import Hpaste.Controller.Cache (cacheIf)
 import Hpaste.Controller.Paste (pasteForm)
 import Hpaste.Model.Channel    (getChannels)
+import Hpaste.Model.Spam
 import Hpaste.Model.Language   (getLanguages)
 
+import Control.Monad.IO.Class
 import Hpaste.Types.Cache      as Key
 import Hpaste.View.Home        (page)
 
@@ -26,7 +28,8 @@ handle spam = do
     --  pastes <- model $ getLatestPastes Nothing
     chans <- model $ getChannels
     langs <- model $ getLanguages
-    form <- pasteForm chans langs Nothing Nothing Nothing
+    spamDB <- liftIO (readDB "spam.db")
+    form <- pasteForm spamDB chans langs Nothing Nothing Nothing
     uri <- getMyURI
     return $ Just $ page uri chans langs [] form spam
   maybe (return ()) outputText html

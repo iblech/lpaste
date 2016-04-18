@@ -10,6 +10,8 @@ module Hpaste.Controller.New
 import Hpaste.Types
 import Hpaste.Controller.Paste (pasteForm,getPasteId)
 import Hpaste.Model.Channel    (getChannels)
+import Control.Monad.IO.Class
+import Hpaste.Model.Spam
 import Hpaste.Model.Language   (getLanguages)
 import Hpaste.Model.Paste      (getPasteById,getLatestVersion)
 import Hpaste.View.Annotate    as Annotate (page)
@@ -26,6 +28,7 @@ data NewStyle = NewPaste | AnnotatePaste | EditPaste
 -- | Make a new paste.
 handle :: NewStyle -> HPCtrl ()
 handle style = do
+  spamDB <- liftIO (readDB "spam.db")
   chans <- model $ getChannels
   langs <- model $ getLanguages
   defChan <- fmap decodeUtf8 <$> getParam "channel"
@@ -37,7 +40,7 @@ handle style = do
       	  	 | otherwise = Nothing
       let epaste | style == EditPaste = paste
       	  	 | otherwise = Nothing
-      form <- pasteForm chans langs defChan apaste epaste
+      form <- pasteForm spamDB chans langs defChan apaste epaste
       justOrGoHome paste $ \paste -> do
         latest <- model $ getLatestVersion paste
         case style of
@@ -45,5 +48,6 @@ handle style = do
 	  EditPaste     -> output $ Edit.page (pasteTitle latest) form
 	  _ -> goHome
     Nothing -> do
-      form <- pasteForm chans langs defChan Nothing Nothing
+      spamDB <- liftIO $ readDB "spam.db"
+      form <- pasteForm spamDB chans langs defChan Nothing Nothing
       output $ New.page form

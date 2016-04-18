@@ -22,6 +22,7 @@ import Hpaste.Model.Spam
 import Hpaste.Types.Cache      as Key
 import Hpaste.View.Paste       (pasteFormlet,page)
 
+
 import Control.Applicative
 import Control.Monad           ((>=>))
 
@@ -85,8 +86,8 @@ handle revision = do
       justOrGoHome html outputText
 
 -- | Control paste annotating / submission.
-pasteForm :: [Channel] -> [Language] -> Maybe Text -> Maybe Paste -> Maybe Paste -> HPCtrl Html
-pasteForm channels languages defChan annotatePaste editPaste = do
+pasteForm :: SpamDB -> [Channel] -> [Language] -> Maybe Text -> Maybe Paste -> Maybe Paste -> HPCtrl Html
+pasteForm spamDB channels languages defChan annotatePaste editPaste = do
   params <- getParams
   submittedPrivate <- isJust <$> getParam "private"
   submittedPublic <- isJust <$> getParam "public"
@@ -121,7 +122,7 @@ pasteForm channels languages defChan annotatePaste editPaste = do
     Nothing -> return ()
     Just PasteSubmit{pasteSubmitSpamTrap=Just{}} -> goHome
     Just paste -> do
-      spamrating <- model $ spamRatio paste
+      let spamrating = classify spamDB paste
       if spamrating >= spam
          then goSpamBlocked
          else do

@@ -7,12 +7,13 @@
 
 module Hpaste.Controller.Report
   (handle
-  ,handleDelete)
+  ,handleDelete
+  ,handleReportSpam)
   where
 
 import           Hpaste.Controller.Cache (resetCache)
 import           Hpaste.Controller.Admin (withAuth)
-import           Hpaste.Model.Paste   (getPasteById,deletePaste)
+import           Hpaste.Model.Paste   (getPasteById,deletePaste,markSpamPaste)
 import           Hpaste.Model.Report
 import           Hpaste.Types
 import           Hpaste.Types.Cache      as Key
@@ -73,7 +74,17 @@ handleDelete =
     case pid of
       Nothing -> goReport
       Just (pid :: Integer) -> do
-	model $ deletePaste pid
+        model $ deletePaste pid
+        goReport
+
+handleReportSpam :: HPCtrl ()
+handleReportSpam =
+  withAuth $ \_ -> do
+    pid <- (>>= readMay) . fmap (toString) <$> getParam "id"
+    case pid of
+      Nothing -> goReport
+      Just (pid :: Integer) -> do
+	model $ markSpamPaste pid
 	goReport
 
 -- | Go back to the reported page.

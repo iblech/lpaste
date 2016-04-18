@@ -28,11 +28,15 @@ page form paste =
   , pageBody = do reporting form; viewPaste paste
   , pageName = "paste"
   }
-  
+
 reporting :: Html -> Html
 reporting form = do
   lightSection "Report a paste" $ do
-    p $ do "Please state any comments regarding the paste:"
+    p $ do "Please put a quick comment for the admin."
+    p $ do "If it looks like spam, the admin will mark it as \
+           \spam so that the spam filter picks it up in the future."
+    p $ do "If the paste contains something private or offensive, \
+           \it'll probably just be deleted."
     H.form ! A.method "post" $ do
       form
 
@@ -46,23 +50,11 @@ viewPaste Paste{..} = do
 pasteDetails :: Text -> Html
 pasteDetails title =
   darkNoTitleSection $ do
-    pasteNav
     h2 $ toHtml title
-    ul ! aClass "paste-specs" $ do
-      detail "Language" $ "Haskell"
-      detail "Raw" $ href ("/stepeval/raw" :: Text)
-                          ("View raw link" :: Text)
     clear
 
     where detail title content = do
             li $ do strong (title ++ ":"); content
-
--- | Individual paste navigation.
-pasteNav :: Html
-pasteNav =
-  H.div ! aClass "paste-nav" $ do
-    href ("https://github.com/benmachine/stepeval" :: Text)
-         ("Go to stepeval project" :: Text)
 
 -- | Show the paste content with highlighting.
 pasteContent :: Text -> Html
@@ -79,4 +71,4 @@ reportFormlet ReportFormlet{..} =
   in (reportSubmit,frm)
 
 reportSubmit :: Formlet Text
-reportSubmit = req (textInput "report" "Comments" Nothing)
+reportSubmit = req (textInput "report" "Comments" (Just "spam"))
