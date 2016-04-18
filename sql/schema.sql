@@ -153,7 +153,7 @@ CREATE TABLE paste (
     output text,
     public boolean DEFAULT true,
     revision_of bigint,
-    spamrating integer DEFAULT 0
+    spamrating decimal DEFAULT 0
 );
 
 
