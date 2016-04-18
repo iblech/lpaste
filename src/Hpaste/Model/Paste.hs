@@ -42,7 +42,7 @@ import Data.Monoid.Operator   ((++))
 import Data.Text              (Text,unpack,pack)
 import qualified Data.Text              as T
 import Data.Text.IO           as T (writeFile)
-import Data.Text.Lazy         (fromStrict)
+
 import Language.Haskell.HLint
 import Prelude                hiding ((++))
 import Snap.App

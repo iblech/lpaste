@@ -21,10 +21,10 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
 import           Data.Time
 import           Data.Time.Relative
-import           Network.URI
+
 import           Network.URI.Params
 import           Prelude            hiding ((++))
-import           Snap.App.Types
+
 import           Text.Blaze.Extra
 import           Text.Blaze.Html5   as H hiding (map)
 import qualified Text.Blaze.Html5.Attributes   as A

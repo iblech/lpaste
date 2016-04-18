@@ -24,7 +24,7 @@ import Hpaste.View.Paste       (pasteFormlet,page)
 
 import Control.Applicative
 import Control.Monad           ((>=>))
-import Control.Monad.IO
+
 import Data.ByteString         (ByteString)
 import Data.ByteString.UTF8    (toString)
 import Data.List               (nub)

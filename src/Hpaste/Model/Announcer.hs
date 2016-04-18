@@ -16,7 +16,7 @@ import		 Control.Monad.Fix
 import           Control.Concurrent
 import qualified Control.Exception       as E
 import           Control.Monad
-import           Control.Monad.Env       (env)
+
 import           Control.Monad.IO        (io)
 import qualified Data.ByteString    as B
 import           Data.Monoid.Operator    ((++))
@@ -24,11 +24,11 @@ import 		 Data.Char
 import           Data.Text          (Text,pack,unpack)
 import qualified Data.Text          as T
 import           Data.Text.Encoding
-import Data.Time
+
 import qualified Data.Text.IO       as T
 import           Network
 import           Prelude                 hiding ((++))
-import           Snap.App.Types
+
 import           System.IO
 
 -- | Start a thread and return a channel to it.

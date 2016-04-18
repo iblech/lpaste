@@ -9,14 +9,14 @@ import           Hpaste.Model.Paste
 import           Hpaste.Model.Channel
 import           Hpaste.Types
 
-import           Control.Applicative
-import           Control.Monad
+
+
 import           Data.List
 import           Data.Monoid
-import           Data.String.ToString
+
 import qualified Data.Text as T
 import           Data.Text.Encoding
-import           Safe
+
 import           Snap.App
 import           Snap.App.RSS
 

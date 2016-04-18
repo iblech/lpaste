@@ -22,7 +22,7 @@ import           Control.Applicative
 import           Control.Arrow               ((&&&))
 import           Control.Monad
 import           Data.ByteString.UTF8        (toString)
-import           Data.Foldable               (for_)
+
 import           Data.List                   (find,nub)
 import qualified Data.Map                    as M
 import           Data.Maybe

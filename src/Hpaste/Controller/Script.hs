@@ -9,7 +9,7 @@ module Hpaste.Controller.Script
 
 import Hpaste.View.Script (script)
 
-import Snap.Core          (modifyResponse,setContentType)
+
 import Snap.App
 
 handle :: Controller c s ()

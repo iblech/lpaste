@@ -7,7 +7,7 @@ module Hpaste.Config
        where
 
 import Hpaste.Types.Config
-import Hpaste.Model.Announcer
+
 
 import Data.ConfigFile
 import Database.PostgreSQL.Simple (ConnectInfo(..))
@@ -38,7 +38,7 @@ getConfig conf = do
           <- mapM (get c "ADDRESSES")
 	     	  ["admin","site_addy"]
         [key] <- mapM (get c "ADMIN") ["key"]
-                  
+
         return Config {
            configAnnounce = AnnounceConfig user pass host (read port)
          , configPostgres = ConnectInfo pghost (read pgport) pguser pgpass pgdb

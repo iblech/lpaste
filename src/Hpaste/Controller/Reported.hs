@@ -13,7 +13,7 @@ import Hpaste.Types
 import Hpaste.View.Reported  (page)
 
 import Text.Blaze.Pagination
-import Data.Pagination
+
 import Snap.App
 
 -- | List the reported pastes.

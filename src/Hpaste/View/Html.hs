@@ -36,7 +36,7 @@ import           Prelude                     hiding ((++))
 import           Text.Blaze.Html5            as H hiding (map,nav)
 import qualified Text.Blaze.Html5.Attributes as A
 import           Text.Blaze.Extra
-import Snap.App.Types
+
 
 -- | A class prefixed with nothing.
 aClass :: AttributeValue -> Attribute

@@ -10,7 +10,7 @@ module Hpaste.Types.Newtypes
        ,ReportId(..))
        where
 
-import Database.PostgreSQL.Simple
+
 import Database.PostgreSQL.Simple.FromField
 import Database.PostgreSQL.Simple.ToField
 

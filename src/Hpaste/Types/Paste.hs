@@ -22,9 +22,9 @@ module Hpaste.Types.Paste
 import Hpaste.Types.Newtypes
 import Hpaste.Types.Language
 import Hpaste.Types.Channel
-import Control.Applicative
-import Blaze.ByteString.Builder                (toByteString)
-import Blaze.ByteString.Builder.Char.Utf8      as Utf8 (fromString)
+
+
+
 import Data.Text                               (Text,pack)
 import Data.Time                               (UTCTime,zonedTimeToUTC)
 import Database.PostgreSQL.Simple

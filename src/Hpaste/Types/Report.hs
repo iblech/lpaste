@@ -2,7 +2,7 @@ module Hpaste.Types.Report where
 
 import Hpaste.Types.Newtypes                   (PasteId)
 
-import Control.Applicative
+
 import Data.Text                               (Text)
 import Data.Time                               (UTCTime,zonedTimeToUTC)
 import Database.PostgreSQL.Simple

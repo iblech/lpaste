@@ -7,7 +7,7 @@ module Hpaste.Types.Language
        where
 
 import Hpaste.Types.Newtypes
-import Control.Applicative
+
 import Data.Text                               (Text)
 import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.FromRow

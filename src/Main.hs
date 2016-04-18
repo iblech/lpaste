@@ -21,8 +21,8 @@ import Hpaste.Model.Announcer     (newAnnouncer)
 import Hpaste.Types
 import Hpaste.Types.Announcer
 
-import Control.Concurrent.Chan    (Chan)
-import Data.Text.Lazy             (Text)
+
+
 import System.Environment
 import Snap.App
 import Snap.Http.Server           hiding (Config)

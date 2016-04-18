@@ -31,11 +31,11 @@ import Hpaste.Types.Stepeval
 import Hpaste.Types.Report
 import Hpaste.Types.Announcer (Announcer)
 
-import Control.Concurrent (Chan)
+
 import Control.Monad.Env
 import Control.Monad.IO
 import Control.Monad.Reader
-import Data.Text.Lazy (Text)
+
 import Snap.App.Types
 
 type HPState = Announcer

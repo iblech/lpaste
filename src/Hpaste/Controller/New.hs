@@ -16,7 +16,7 @@ import Hpaste.View.Annotate    as Annotate (page)
 import Hpaste.View.Edit        as Edit (page)
 import Hpaste.View.New         as New (page)
 
-import Control.Applicative
+
 import Data.Text.Encoding      (decodeUtf8)
 import Snap.App
 
