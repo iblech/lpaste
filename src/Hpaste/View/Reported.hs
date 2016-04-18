@@ -35,7 +35,7 @@ reported pn rs key = do
   darkSection "Reported pastes" $ do
     pagination pn
     table ! aClass "latest-pastes" $ do
-      tr $ mapM_ (th . toHtml) $ words "Date Paste Delete Spam Comments"
+      tr $ mapM_ (th . toHtml) $ words "Date Paste Delete Spam Disregard Comments"
       reports rs
     pagination pn
 
