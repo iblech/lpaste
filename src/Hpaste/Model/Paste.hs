@@ -59,10 +59,9 @@ disregardReport :: Integer -> HPModel ()
 disregardReport pid =
   void (exec ["DELETE FROM report WHERE paste = ?"] (Only pid))
 
-
 markSpamPaste :: Integer -> HPModel ()
 markSpamPaste pid =
-  do void (exec ["UPDATE paste SET spamrating = 1 WHERE id = ? "]
+  do void (exec ["UPDATE paste SET markedspam = true AND public = false WHERE id = ? "]
                 (Only pid))
      void (exec ["DELETE FROM report WHERE paste = ?"] (Only pid))
 

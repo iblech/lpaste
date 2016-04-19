@@ -43,7 +43,7 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- Name: channel; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: channel; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE channel (
@@ -72,7 +72,7 @@ ALTER SEQUENCE channel_id_seq OWNED BY channel.id;
 
 
 --
--- Name: hint; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: hint; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE hint (
@@ -103,7 +103,7 @@ ALTER SEQUENCE hint_id_seq OWNED BY hint.id;
 
 
 --
--- Name: language; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: language; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE language (
@@ -135,7 +135,7 @@ ALTER SEQUENCE language_id_seq OWNED BY language.id;
 
 
 --
--- Name: paste; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: paste; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE paste (
@@ -177,7 +177,7 @@ ALTER SEQUENCE paste_id_seq OWNED BY paste.id;
 
 
 --
--- Name: report; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: report; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE report (
@@ -232,7 +232,7 @@ ALTER SEQUENCE report_id_seq OWNED BY report.id;
 
 
 --
--- Name: step; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: step; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE step (
@@ -278,7 +278,7 @@ ALTER TABLE ONLY report ALTER COLUMN id SET DEFAULT nextval('report_id_seq'::reg
 
 
 --
--- Name: channel_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: channel_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY channel
@@ -286,7 +286,7 @@ ALTER TABLE ONLY channel
 
 
 --
--- Name: hint_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: hint_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY hint
@@ -294,7 +294,7 @@ ALTER TABLE ONLY hint
 
 
 --
--- Name: language_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: language_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY language
@@ -302,7 +302,7 @@ ALTER TABLE ONLY language
 
 
 --
--- Name: paste_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: paste_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY paste
@@ -310,7 +310,7 @@ ALTER TABLE ONLY paste
 
 
 --
--- Name: report_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: report_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY report
@@ -318,21 +318,21 @@ ALTER TABLE ONLY report
 
 
 --
--- Name: paste_author_index; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: paste_author_index; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX paste_author_index ON paste USING btree (author);
 
 
 --
--- Name: paste_date_index; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: paste_date_index; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX paste_date_index ON paste USING btree (created);
 
 
 --
--- Name: paste_title_index; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: paste_title_index; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX paste_title_index ON paste USING btree (title);
@@ -400,3 +400,4 @@ GRANT ALL ON SCHEMA public TO PUBLIC;
 -- PostgreSQL database dump complete
 --
 
+ALTER TABLE paste ADD flaggedspam BOOL NOT NULL DEFAULT FALSE;
