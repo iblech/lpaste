@@ -291,12 +291,6 @@ pasteNav annotationInfo paste =
     " - "
     pasteRawLink (pcOriginal paste) ("Raw" :: Text)
 
-    " - "
-    a ! hrefURI' (updateUrlParams [("title",T.unpack (pasteTitle (pcLatest paste)))
-                                 ,("paste","http://lpaste.net/raw/" ++ show pid)]
-                                 (fromJust (parseURI "https://fpcomplete.com/ide"))) $
-      "Clone in IDE"
-
     where pid = pasteId (pcOriginal paste)
           diffLink =
             case annotationInfo of
