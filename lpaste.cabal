@@ -128,3 +128,4 @@ Executable lpaste
     Hpaste.View.Steps
     Hpaste.View.Highlight
     Text.Blaze.Html5.Extra
+    Spam

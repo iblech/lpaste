@@ -13,10 +13,17 @@ module Hpaste.Controller.Paste
   ,withPasteKey)
   where
 
+import           Control.Applicative
+import           Control.Monad ((>=>))
+import           Data.ByteString (ByteString)
+import           Data.ByteString.UTF8 (toString)
 import           Data.List
+import           Data.Maybe
 import           Data.Monoid
+import           Data.String (fromString)
 import           Data.Text (Text)
 import qualified Data.Text as T
+import           Data.Traversable (for)
 import           Hpaste.Controller.Cache (cache,resetCache)
 import           Hpaste.Model.Channel (getChannels)
 import           Hpaste.Model.Language (getLanguages)
@@ -25,16 +32,10 @@ import           Hpaste.Model.Spam
 import           Hpaste.Types
 import           Hpaste.Types.Cache as Key
 import           Hpaste.View.Paste (pasteFormlet,page)
-import           Control.Applicative
-import           Control.Monad ((>=>))
-import           Data.ByteString (ByteString)
-import           Data.ByteString.UTF8 (toString)
-import           Data.Maybe
-import           Data.String (fromString)
-import           Data.Traversable (for)
 import           Prelude hiding ((++))
 import           Safe
 import           Snap.App
+import           Spam
 import           Text.Blaze.Html5 as H hiding (output)
 import           Text.Formlet
 
@@ -62,7 +63,7 @@ handle revision = do
               pcLatest         <- getLatestVersion ann
               pcLatestHints    <- getHints (pasteId pcLatest)
               pcRevisions      <- getRevisions (pasteId ann)
-              pcRevisionsHints <- mapM (getHints.pasteId) pcRevisions
+              pcRevisionHints  <- mapM (getHints.pasteId) pcRevisions
               return PasteContext {
                 pcOriginal    = ann,
                 pcAnnotations = [],
@@ -109,7 +110,7 @@ pasteForm spamDB channels languages defChan annotatePaste editPaste = do
         , pfDefChan   = defChan
         , pfAnnotatePaste = (,) <$> annotatePaste <*> mbLatest
         , pfEditPaste     = (,) <$> editPaste     <*> mbLatest
-	, pfContent = pastePaste <$> mbLatest
+        , pfContent = pastePaste <$> mbLatest
         }
       (getValue,_) = pasteFormlet formlet
       value = formletValue getValue params
@@ -120,7 +121,7 @@ pasteForm spamDB channels languages defChan annotatePaste editPaste = do
     Nothing -> return ()
     Just PasteSubmit{pasteSubmitSpamTrap=Just{}} -> goHome
     Just paste -> do
-      let spamrating = classify spamDB paste
+      let spamrating = classifyPaste spamDB paste
       if spamrating >= spam ||
          T.isInfixOf "http://" (pasteSubmitTitle paste) ||
          T.isInfixOf "https://" (pasteSubmitTitle paste)

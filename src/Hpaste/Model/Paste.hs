@@ -29,7 +29,6 @@ module Hpaste.Model.Paste
 
 import Hpaste.Types
 import Hpaste.Model.Announcer
-import Hpaste.Model.Spam
 
 import Data.Pagination
 import Control.Applicative    ((<$>),(<|>))
@@ -38,6 +37,7 @@ import Control.Monad
 import Control.Monad.Env
 import Control.Monad.IO
 import Data.Char
+import Spam
 import Data.List              (find,intercalate)
 import Data.Maybe
 import Data.Monoid.Operator   ((++))
@@ -70,19 +70,19 @@ countPublicPastes :: Maybe String -> HPModel Integer
 countPublicPastes mauthor = do
   rows <- single ["SELECT COUNT(*)"
                  ,"FROM public_toplevel_paste"
-		 ,"WHERE (? IS NULL) OR (author = ?) AND spamrating < ?"]
-		 (mauthor,mauthor,spam)
+                 ,"WHERE (? IS NULL) OR (author = ?) AND spamrating < ?"]
+                 (mauthor,mauthor,spam)
   return $ fromMaybe 0 rows
 
 -- | Get the latest pastes.
 getLatestPastes :: Maybe ChannelId -> HPModel [Paste]
 getLatestPastes channel =
   query ["SELECT ",pasteFields
-	,"FROM public_toplevel_paste"
-	,"WHERE spamrating < ?"
+        ,"FROM public_toplevel_paste"
+        ,"WHERE spamrating < ?"
         ,"AND channel = ? or ? is null"
-	,"ORDER BY created DESC"
-	,"LIMIT 20"]
+        ,"ORDER BY created DESC"
+        ,"LIMIT 20"]
        (spam,channel,channel)
 
 -- | Get some paginated pastes.
@@ -90,12 +90,12 @@ getPaginatedPastes :: Maybe String -> Pagination -> HPModel (Pagination,[Paste])
 getPaginatedPastes mauthor pn@Pagination{..} = do
   total <- countPublicPastes mauthor
   rows <- query ["SELECT",pasteFields
-		,"FROM public_toplevel_paste"
-		,"WHERE (? IS NULL) OR (author = ?) AND spamrating < ?"
-		,"ORDER BY created DESC"
-		,"OFFSET " ++ show (max 0 (pnCurrentPage - 1) * pnPerPage)
-		,"LIMIT " ++ show pnPerPage]
-		(mauthor,mauthor,spam)
+                ,"FROM public_toplevel_paste"
+                ,"WHERE (? IS NULL) OR (author = ?) AND spamrating < ?"
+                ,"ORDER BY created DESC"
+                ,"OFFSET " ++ show (max 0 (pnCurrentPage - 1) * pnPerPage)
+                ,"LIMIT " ++ show pnPerPage]
+                (mauthor,mauthor,spam)
   return (pn { pnTotal = total },rows)
 
 -- | Get a paste by its id.
@@ -221,16 +221,16 @@ announcePaste ptype channel PasteSubmit{..} prevTitle pid = do
              | otherwise = "“" ++ pasteSubmitAuthor ++ "”"
         link Config{..} = "http://" ++ pack configDomain ++ "/" ++ pid'
         pid' = case ptype of
-	         NormalPaste -> showPid pid
+                 NormalPaste -> showPid pid
                  AnnotationOf apid -> showPid apid ++ "#a" ++ showPid pid
                  RevisionOf apid -> showPid apid
         verb = case ptype of
           NormalPaste -> "pasted"
           AnnotationOf _ -> case prevTitle of
-	    Just s  -> "annotated “" ++ s ++ "” with"
+            Just s  -> "annotated “" ++ s ++ "” with"
             Nothing -> "annotated a paste with"
           RevisionOf _ -> case prevTitle of
-	    Just s  -> "revised “" ++ s ++ "”:"
+            Just s  -> "revised “" ++ s ++ "”:"
             Nothing -> "revised a paste:"
         showPid (PasteId p) = pack $ show $ (p :: Integer)
         seemsLikeSpam = T.isInfixOf "http://"
@@ -285,4 +285,5 @@ updatePaste pid PasteSubmit{..} = do
     where fields = "title author content language channel"
           set key = unwords [key,"=","?"]
 
+pasteFields :: String
 pasteFields = "id,title,content,author,created,views,language,channel,annotation_of,revision_of"

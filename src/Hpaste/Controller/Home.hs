@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 {-# OPTIONS -Wall #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -7,17 +8,15 @@ module Hpaste.Controller.Home
   (handle)
   where
 
-import Hpaste.Types
+import Control.Monad.IO.Class
 import Hpaste.Controller.Cache (cacheIf)
 import Hpaste.Controller.Paste (pasteForm)
-import Hpaste.Model.Channel    (getChannels)
-import Hpaste.Model.Spam
-import Hpaste.Model.Language   (getLanguages)
-
-import Control.Monad.IO.Class
-import Hpaste.Types.Cache      as Key
-import Hpaste.View.Home        (page)
-
+import Hpaste.Model.Channel (getChannels)
+import Hpaste.Model.Language (getLanguages)
+import Hpaste.Types
+import Hpaste.Types.Cache as Key
+import Hpaste.View.Home (page)
+import Spam hiding (spam)
 
 import Snap.App
 

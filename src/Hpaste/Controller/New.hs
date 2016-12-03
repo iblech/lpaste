@@ -7,20 +7,18 @@ module Hpaste.Controller.New
   (handle,NewStyle(..))
   where
 
-import Hpaste.Types
-import Hpaste.Controller.Paste (pasteForm,getPasteId)
-import Hpaste.Model.Channel    (getChannels)
 import Control.Monad.IO.Class
-import Hpaste.Model.Spam
-import Hpaste.Model.Language   (getLanguages)
-import Hpaste.Model.Paste      (getPasteById,getLatestVersion)
-import Hpaste.View.Annotate    as Annotate (page)
-import Hpaste.View.Edit        as Edit (page)
-import Hpaste.View.New         as New (page)
-
-
-import Data.Text.Encoding      (decodeUtf8)
+import Data.Text.Encoding (decodeUtf8)
+import Hpaste.Controller.Paste (pasteForm,getPasteId)
+import Hpaste.Model.Channel (getChannels)
+import Hpaste.Model.Language (getLanguages)
+import Hpaste.Model.Paste (getPasteById,getLatestVersion)
+import Hpaste.Types
+import Hpaste.View.Annotate as Annotate (page)
+import Hpaste.View.Edit as Edit (page)
+import Hpaste.View.New as New (page)
 import Snap.App
+import Spam
 
 data NewStyle = NewPaste | AnnotatePaste | EditPaste
  deriving Eq
@@ -37,16 +35,16 @@ handle style = do
     Just pid -> do
       paste <- model $ getPasteById pid
       let apaste | style == AnnotatePaste = paste
-      	  	 | otherwise = Nothing
+                 | otherwise = Nothing
       let epaste | style == EditPaste = paste
-      	  	 | otherwise = Nothing
+                 | otherwise = Nothing
       form <- pasteForm spamDB chans langs defChan apaste epaste
       justOrGoHome paste $ \paste -> do
         latest <- model $ getLatestVersion paste
         case style of
           AnnotatePaste -> output $ Annotate.page (pasteTitle latest) form
-	  EditPaste     -> output $ Edit.page (pasteTitle latest) form
-	  _ -> goHome
+          EditPaste     -> output $ Edit.page (pasteTitle latest) form
+          _ -> goHome
     Nothing -> do
       spamDB <- liftIO $ readDB "spam.db"
       form <- pasteForm spamDB chans langs defChan Nothing Nothing
