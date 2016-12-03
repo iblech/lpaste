@@ -23,7 +23,7 @@ classifyPaste db = classify db . makeTokens
 
 -- | Make tokens from a paste submission.
 makeTokens :: PasteSubmit -> [Token]
-makeTokens p = tokens (pasteSubmitTitle p, pasteSubmitPaste p)
+makeTokens p = tokens (pasteSubmitTitle p, pasteSubmitPaste p,pasteSubmitAuthor p)
 
 -- | Tokenize a paste.
 tokenize :: String -> [Token]
@@ -33,31 +33,33 @@ tokenize = map Token . words
 -- corpus.
 generateSpamDB :: Model c s ()
 generateSpamDB = do
-  good :: [(Text, Text)] <-
+  good :: [(Text, Text, Text)] <-
     query
-      [ "SELECT title, content"
+      [ "SELECT title, content, author"
       , "FROM paste"
       , "WHERE NOT flaggedspam"
       , "LIMIT 100"
       ]
       ()
-  bad :: [(Text, Text)] <-
+  bad :: [(Text, Text, Text)] <-
     query
-      ["SELECT title, content", "FROM paste", "WHERE flaggedspam", "LIMIT 100"]
+      [ "SELECT title, content, author"
+      , "FROM paste"
+      , "WHERE flaggedspam"
+      , "LIMIT 100"
+      ]
       ()
   liftIO
     (do writeDB
           "spam.db"
-          DB
-          { dbGood = corpus tokens good
-          , dbBad = corpus tokens bad
-          })
+          DB {dbGood = corpus tokens good, dbBad = corpus tokens bad})
 
 -- | Make tokens from paste content.
-tokens :: (Text, Text) -> [Token]
-tokens  (title, body) =
+tokens :: (Text, Text, Text) -> [Token]
+tokens  (title, body, author) =
   map (Token . ("t:" <>)) (chunks (T.unpack title)) <>
-  map (Token . ("b:" <>)) (chunks (T.unpack body))
+  map (Token . ("b:" <>)) (chunks (T.unpack body)) <>
+  map (Token . ("a:" <>)) (chunks (T.unpack author))
   where
     chunks = words . map replace
       where
