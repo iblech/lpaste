@@ -129,8 +129,11 @@ pasteForm spamDB channels languages defChan annotatePaste editPaste = do
            resetCache Key.Home
            mapM_ (resetCache . Key.Paste) $
              nub $ catMaybes [pasteSubmitId paste, parentPasteId]
+           let possibleSpam = T.isInfixOf "http://" (pasteSubmitPaste paste) ||
+                              T.isInfixOf "https://" (pasteSubmitPaste paste)
+               finalPublic = not possibleSpam && submittedPublic
            pid <- model $ createPaste languages channels paste
-                                      spamrating submittedPublic
+                                      spamrating finalPublic
            mapM_ redirectToPaste (parentPasteId <|> pid)
   return html
 
