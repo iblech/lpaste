@@ -57,8 +57,7 @@ generateSpamDB = do
 tokens :: (Text, Text) -> [Token]
 tokens  (title, body) =
   map (Token . ("t:" <>)) (chunks (T.unpack title)) <>
-  map (Token . ("b:" <>)) (chunks (T.unpack body)) <>
-  [Token ("title:" <> T.unpack title), Token ("body:" <> T.unpack body)]
+  map (Token . ("b:" <>)) (chunks (T.unpack body))
   where
     chunks = words . map replace
       where
