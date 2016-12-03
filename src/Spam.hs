@@ -113,7 +113,7 @@ corpus tokenize = foldl' (<>) mempty . map (Corpus 1 . histogram . tokenize)
 
 -- | Generate a histogram from a list of tokens.
 histogram :: [Token] -> Trie Double
-histogram = foldl' (\m (Token t) -> Trie.insertWith (+) t 1 m) Trie.empty
+histogram = foldl' (\m (Token t) -> Trie.insertWith' (+) t 1 m) Trie.empty
 
 -- | Number of occurances before we care about a token.
 occurances :: Double
