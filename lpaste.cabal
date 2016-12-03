@@ -56,6 +56,7 @@ Executable lpaste
    ,cgi
    ,process
    ,postgresql-simple
+   ,bytestring-trie
   Other-modules:
     Control.Monad.IO
     Data.Time.Relative
