@@ -9,6 +9,7 @@ module Hpaste.Model.Spam
   where
 
 import           Control.Monad.IO.Class
+import           Data.Monoid
 import           Data.Text (Text)
 import qualified Data.Text as T
 import           Hpaste.Types
@@ -21,11 +22,7 @@ classifyPaste db = classify db . makeTokens
 
 -- | Make tokens from a paste submission.
 makeTokens :: PasteSubmit -> [Token]
-makeTokens p =
-  [Token ("t:" ++ T.unpack (pasteSubmitTitle p))
-  ,Token ("a:" ++ T.unpack (pasteSubmitAuthor p))] ++
-  map (\(Token t) -> Token ("w:" ++ t))
-      (tokenize (T.unpack (pasteSubmitPaste p)))
+makeTokens p = tokens (pasteSubmitTitle p, pasteSubmitPaste p)
 
 -- | Tokenize a paste.
 tokenize :: String -> [Token]
@@ -36,8 +33,25 @@ tokenize = map Token . words
 generateSpamDB :: Model c s ()
 generateSpamDB = do
   good :: [(Text, Text)] <-
-    query ["SELECT title, content", "FROM paste", "WHERE NOT flaggedspam"] ()
+    query
+      [ "SELECT title, content"
+      , "FROM paste"
+      , "WHERE NOT flaggedspam"
+      , "LIMIT 100"
+      ]
+      ()
   bad :: [(Text, Text)] <-
-    query ["SELECT title, content", "FROM paste", "WHERE flaggedspam"] ()
-  liftIO (do print ("good", length good)
-             print ("bad", length bad))
+    query
+      ["SELECT title, content", "FROM paste", "WHERE flaggedspam", "LIMIT 100"]
+      ()
+  liftIO
+    (do writeDB
+          "spam.db"
+          DB {dbGood = corpus tokens good, dbBad = corpus tokens bad})
+
+-- | Make tokens from paste content.
+tokens :: (Text, Text) -> [Token]
+tokens (title, body) =
+  map (Token . ("t:" <>)) (words (T.unpack title)) <>
+  map (Token . ("b:" <>)) (words (T.unpack body)) <>
+  [Token ("title:" <> T.unpack title), Token ("body:" <> T.unpack body)]

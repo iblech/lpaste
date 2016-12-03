@@ -5,8 +5,9 @@
 -- | Spam detection.
 
 module Spam
-  (SpamDB
+  (SpamDB(..)
   ,readDB
+  ,writeDB
   ,classify
   ,spam
   ,corpus
@@ -25,20 +26,20 @@ newtype Token = Token String
   deriving (Ord,Eq,Show,Read)
 
 -- | Spam database.
-data SpamDB =
-  DB {_dbBad :: !Corpus
-     ,_dbGood :: !Corpus}
-       deriving (Read,Show)
+data SpamDB = DB
+  { dbBad :: !Corpus
+  , dbGood :: !Corpus
+  } deriving (Read, Show)
 
 instance Monoid SpamDB where
   mempty = DB mempty mempty
   mappend (DB a x) (DB b y) = DB (a <> b) (x <> y)
 
 -- | A corpus of pastes.
-data Corpus =
-  Corpus {corpusMessages :: Double
-         ,corpusHistogram :: Map Token Double}
-  deriving (Show,Read)
+data Corpus = Corpus
+  { corpusMessages :: Double
+  , corpusHistogram :: Map Token Double
+  } deriving (Show, Read)
 
 instance Monoid Corpus where
   mempty = Corpus 0 mempty
@@ -47,16 +48,21 @@ instance Monoid Corpus where
 
 -- | Read a spam database from file.
 readDB :: FilePath -> IO SpamDB
-readDB fp =
-  do exists <- doesFileExist fp
-     if exists
-        then do content <- readFile fp
-                case reads content of
-                  [(db,"")] -> return db
-                  _ ->
-                    do putStrLn "Failed to read spam database. Defaulting to empty one ..."
-                       return mempty
-        else return mempty
+readDB fp = do
+  exists <- doesFileExist fp
+  if exists
+    then do
+      content <- readFile fp
+      case reads content of
+        [(db, "")] -> return db
+        _ -> do
+          putStrLn "Failed to read spam database. Defaulting to empty one ..."
+          return mempty
+    else return mempty
+
+-- | Write the spam database to file.
+writeDB :: FilePath -> SpamDB -> IO ()
+writeDB fp = writeFile fp . show
 
 -- | Classify a paste from 0 to 1. >=0.5 being spam.
 classify :: SpamDB -> [Token] -> Double
@@ -88,8 +94,8 @@ probability bad good token =
 spam :: Double
 spam = 0.5
 
--- | Generate a corpus from a set of pastes.
-corpus :: (String -> [Token]) -> [String] -> Corpus
+-- | Generate a corpus from a set of documents.
+corpus :: (string -> [Token]) -> [string] -> Corpus
 corpus tokenize = foldl' (<>) mempty . map (Corpus 1 . histogram . tokenize)
 
 -- | Generate a histogram from a list of tokens.
