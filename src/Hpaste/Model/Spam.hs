@@ -9,10 +9,11 @@ module Hpaste.Model.Spam
   where
 
 import           Control.Monad.IO.Class
+import           Data.ByteString (ByteString)
+import qualified Data.ByteString.Char8 as S8
 import           Data.Char
 import           Data.Monoid
-import           Data.Text (Text)
-import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import           Hpaste.Types
 import           Snap.App
 import           Spam
@@ -23,17 +24,17 @@ classifyPaste db = classify db . makeTokens
 
 -- | Make tokens from a paste submission.
 makeTokens :: PasteSubmit -> [Token]
-makeTokens p = tokens (pasteSubmitTitle p, pasteSubmitPaste p,pasteSubmitAuthor p)
-
--- | Tokenize a paste.
-tokenize :: String -> [Token]
-tokenize = map Token . words
+makeTokens p =
+  tokens
+    ( T.encodeUtf8 (pasteSubmitTitle p)
+    , T.encodeUtf8 (pasteSubmitPaste p)
+    , T.encodeUtf8 (pasteSubmitAuthor p))
 
 -- | Re-generate the spam database based on the postgres database
 -- corpus.
 generateSpamDB :: Model c s ()
 generateSpamDB = do
-  good :: [(Text, Text, Text)] <-
+  good :: [(ByteString, ByteString, ByteString)] <-
     query
       [ "SELECT title, content, author"
       , "FROM paste"
@@ -41,7 +42,7 @@ generateSpamDB = do
       -- , "LIMIT 100"
       ]
       ()
-  bad :: [(Text, Text, Text)] <-
+  bad :: [(ByteString, ByteString, ByteString)] <-
     query
       [ "SELECT title, content, author"
       , "FROM paste"
@@ -55,13 +56,14 @@ generateSpamDB = do
           DB {dbGood = corpus tokens good, dbBad = corpus tokens bad})
 
 -- | Make tokens from paste content.
-tokens :: (Text, Text, Text) -> [Token]
+tokens :: (ByteString, ByteString, ByteString) -> [Token]
 tokens  (title, body, author) =
-  map (Token . ("t:" <>)) (chunks (T.unpack title)) <>
-  map (Token . ("b:" <>)) (chunks (T.unpack body)) <>
-  map (Token . ("a:" <>)) (chunks (T.unpack author))
+  map (Token . ("t:" <>)) (chunks title) <>
+  map (Token . ("b:" <>)) (chunks body) <>
+  map (Token . ("a:" <>)) (chunks author)
   where
-    chunks = words . map replace
+    chunks :: ByteString -> [ByteString]
+    chunks = S8.words . S8.map replace
       where
         replace c
           | isAlphaNum c || elem c ['$','-','\''] = c

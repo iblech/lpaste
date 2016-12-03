@@ -14,6 +14,7 @@ module Spam
   ,Token(..))
   where
 
+import           Data.ByteString (ByteString)
 import           Data.List
 import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
@@ -22,7 +23,7 @@ import           Data.Monoid
 import           System.Directory
 
 -- | A token from a document.
-newtype Token = Token String
+newtype Token = Token ByteString
   deriving (Ord,Eq,Show,Read)
 
 -- | Spam database.
