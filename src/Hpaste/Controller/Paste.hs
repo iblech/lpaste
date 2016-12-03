@@ -13,32 +13,35 @@ module Hpaste.Controller.Paste
   ,withPasteKey)
   where
 
-import Hpaste.Types
-import Hpaste.Controller.Cache (cache,resetCache)
-import Hpaste.Model.Channel    (getChannels)
-import Hpaste.Model.Language   (getLanguages)
-import Hpaste.Model.Paste
-import Hpaste.Model.Spam
-import Hpaste.Types.Cache      as Key
-import Hpaste.View.Paste       (pasteFormlet,page)
+import           Data.List
+import           Data.Monoid
+import           Data.Text (Text)
+import qualified Data.Text as T
+import           Hpaste.Controller.Cache (cache,resetCache)
+import           Hpaste.Model.Channel (getChannels)
+import           Hpaste.Model.Language (getLanguages)
+import           Hpaste.Model.Paste
+import           Hpaste.Model.Spam
+import           Hpaste.Types
+import           Hpaste.Types.Cache as Key
+import           Hpaste.View.Paste (pasteFormlet,page)
 
 
-import Control.Applicative
-import Control.Monad           ((>=>))
+import           Control.Applicative
+import           Control.Monad ((>=>))
 
-import Data.ByteString         (ByteString)
-import Data.ByteString.UTF8    (toString)
-import Data.List               (nub)
-import Data.Maybe
-import Data.Monoid.Operator    ((++))
-import Data.String             (fromString)
-import Data.Text               (Text)
-import Data.Traversable        (for)
-import Prelude                 hiding ((++))
-import Safe
-import Snap.App
-import Text.Blaze.Html5        as H hiding (output)
-import Text.Formlet
+import           Data.ByteString (ByteString)
+import           Data.ByteString.UTF8 (toString)
+import           Data.List (nub)
+import           Data.Maybe
+import           Data.String (fromString)
+import           Data.Text (Text)
+import           Data.Traversable (for)
+import           Prelude hiding ((++))
+import           Safe
+import           Snap.App
+import           Text.Blaze.Html5 as H hiding (output)
+import           Text.Formlet
 
 -- | Handle the paste page.
 handle :: Bool -> HPCtrl ()
@@ -123,7 +126,9 @@ pasteForm spamDB channels languages defChan annotatePaste editPaste = do
     Just PasteSubmit{pasteSubmitSpamTrap=Just{}} -> goHome
     Just paste -> do
       let spamrating = classify spamDB paste
-      if spamrating >= spam
+      if spamrating >= spam ||
+         T.isSuffixOf "http://" (pasteSubmitTitle paste) ||
+         T.isSuffixOf "https://" (pasteSubmitTitle paste)
          then goSpamBlocked
          else do
            resetCache Key.Home
@@ -141,7 +146,7 @@ goSpamBlocked = redirect "/spam"
 -- | Redirect to the paste's page.
 redirectToPaste :: PasteId -> HPCtrl ()
 redirectToPaste (PasteId pid) =
-  redirect $ "/" ++ fromString (show pid)
+  redirect $ "/" <> fromString (show pid)
 
 -- | Get the paste id.
 getPasteId :: HPCtrl (Maybe PasteId)
