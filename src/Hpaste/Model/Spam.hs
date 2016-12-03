@@ -49,18 +49,16 @@ generateSpamDB = do
     (do writeDB
           "spam.db"
           DB
-          { dbGood = corpus (tokens False) good
-          , dbBad = corpus (tokens True) bad
+          { dbGood = corpus tokens good
+          , dbBad = corpus tokens bad
           })
 
 -- | Make tokens from paste content.
-tokens :: Bool -> (Text, Text) -> [Token]
-tokens spam' (title, body) =
+tokens :: (Text, Text) -> [Token]
+tokens  (title, body) =
   map (Token . ("t:" <>)) (chunks (T.unpack title)) <>
   map (Token . ("b:" <>)) (chunks (T.unpack body)) <>
-  (if spam'
-     then [Token ("title:" <> T.unpack title), Token ("body:" <> T.unpack body)]
-     else [])
+  [Token ("title:" <> T.unpack title), Token ("body:" <> T.unpack body)]
   where
     chunks = words . map replace
       where
