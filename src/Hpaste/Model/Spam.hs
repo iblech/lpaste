@@ -38,7 +38,7 @@ generateSpamDB = do
       [ "SELECT title, content, author"
       , "FROM paste"
       , "WHERE NOT flaggedspam"
-      , "LIMIT 100"
+      -- , "LIMIT 100"
       ]
       ()
   bad :: [(Text, Text, Text)] <-
@@ -46,7 +46,7 @@ generateSpamDB = do
       [ "SELECT title, content, author"
       , "FROM paste"
       , "WHERE flaggedspam"
-      , "LIMIT 100"
+      -- , "LIMIT 100"
       ]
       ()
   liftIO
