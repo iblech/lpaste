@@ -25,17 +25,12 @@ import           Hpaste.Model.Spam
 import           Hpaste.Types
 import           Hpaste.Types.Cache as Key
 import           Hpaste.View.Paste (pasteFormlet,page)
-
-
 import           Control.Applicative
 import           Control.Monad ((>=>))
-
 import           Data.ByteString (ByteString)
 import           Data.ByteString.UTF8 (toString)
-import           Data.List (nub)
 import           Data.Maybe
 import           Data.String (fromString)
-import           Data.Text (Text)
 import           Data.Traversable (for)
 import           Prelude hiding ((++))
 import           Safe
