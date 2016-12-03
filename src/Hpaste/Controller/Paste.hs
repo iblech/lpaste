@@ -122,8 +122,8 @@ pasteForm spamDB channels languages defChan annotatePaste editPaste = do
     Just paste -> do
       let spamrating = classify spamDB paste
       if spamrating >= spam ||
-         T.isSuffixOf "http://" (pasteSubmitTitle paste) ||
-         T.isSuffixOf "https://" (pasteSubmitTitle paste)
+         T.isInfixOf "http://" (pasteSubmitTitle paste) ||
+         T.isInfixOf "https://" (pasteSubmitTitle paste)
          then goSpamBlocked
          else do
            resetCache Key.Home
