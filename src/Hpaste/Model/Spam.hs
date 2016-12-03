@@ -9,6 +9,7 @@ module Hpaste.Model.Spam
   where
 
 import           Control.Monad.IO.Class
+import           Data.Char
 import           Data.Monoid
 import           Data.Text (Text)
 import qualified Data.Text as T
@@ -47,11 +48,22 @@ generateSpamDB = do
   liftIO
     (do writeDB
           "spam.db"
-          DB {dbGood = corpus tokens good, dbBad = corpus tokens bad})
+          DB
+          { dbGood = corpus (tokens False) good
+          , dbBad = corpus (tokens True) bad
+          })
 
 -- | Make tokens from paste content.
-tokens :: (Text, Text) -> [Token]
-tokens (title, body) =
-  map (Token . ("t:" <>)) (words (T.unpack title)) <>
-  map (Token . ("b:" <>)) (words (T.unpack body)) <>
-  [Token ("title:" <> T.unpack title), Token ("body:" <> T.unpack body)]
+tokens :: Bool -> (Text, Text) -> [Token]
+tokens spam' (title, body) =
+  map (Token . ("t:" <>)) (chunks (T.unpack title)) <>
+  map (Token . ("b:" <>)) (chunks (T.unpack body)) <>
+  (if spam'
+     then [Token ("title:" <> T.unpack title), Token ("body:" <> T.unpack body)]
+     else [])
+  where
+    chunks = words . map replace
+      where
+        replace c
+          | isAlphaNum c || elem c ['$'] = c
+          | otherwise = ' '
