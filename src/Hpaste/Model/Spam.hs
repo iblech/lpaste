@@ -62,5 +62,5 @@ tokens  (title, body) =
     chunks = words . map replace
       where
         replace c
-          | isAlphaNum c || elem c ['$'] = c
+          | isAlphaNum c || elem c ['$','-','\''] = c
           | otherwise = ' '
