@@ -22,6 +22,7 @@ import Hpaste.Model.Spam (generateSpamDB)
 import Hpaste.Types
 import Hpaste.Types.Announcer
 import Snap.App
+import Spam
 import Snap.Http.Server hiding (Config)
 import Snap.Util.FileServe
 import System.Environment
@@ -36,6 +37,10 @@ main = do
       pool <- newPool (configPostgres config)
       setUnicodeLocale "en_US"
       runDB () () pool generateSpamDB
+    [_, "spam", "summary"] -> do
+      setUnicodeLocale "en_US"
+      db <- readDB "spam.db"
+      summarizeDB db
     (cpath:_) -> do
       config <- getConfig cpath
       announces <- newAnnouncer (configAnnounce config)

@@ -14,6 +14,7 @@ module Spam
   ,readDB
   ,writeDB
   ,listTokens
+  ,summarizeDB
   ,insertTokens
   ,classify
   ,spam
@@ -26,6 +27,7 @@ import qualified Data.ByteString as S
 import           Data.Conduit
 import           Data.List
 import           Data.Maybe
+import           Data.Ord
 import           Data.Trie (Trie)
 import qualified Data.Trie as Trie
 import qualified Data.Trie.Convenience as Trie
@@ -65,6 +67,31 @@ readDB fp = do
 -- | Write the spam database to file.
 writeDB :: FilePath -> SpamDB -> IO ()
 writeDB fp = encodeFile fp
+
+-- | Print out a summary for the database.
+summarizeDB :: SpamDB -> IO ()
+summarizeDB (DB bad good) = do
+  putStrLn ("Messages: " ++ show messageCount)
+  putStrLn
+    ("Tokens: " ++
+     show tokenCount ++
+     " (" ++
+     show (Trie.size (corpusHistogram good)) ++
+     " ham, " ++ show (Trie.size (corpusHistogram bad)) ++ " spam)")
+  putStrLn "Top 10 ham tokens"
+  mapM_
+    print
+    (take
+       10
+       (sortBy (flip (comparing snd)) (Trie.toList (corpusHistogram good))))
+  putStrLn "Top 10 spam tokens"
+  mapM_
+    print
+    (take 10 (sortBy (flip (comparing snd)) (Trie.toList (corpusHistogram bad))))
+  where
+    messageCount = corpusMessages bad + corpusMessages good
+    tokenCount =
+      Trie.size (corpusHistogram bad) + Trie.size (corpusHistogram good)
 
 -- | Classify a paste from 0 to 1. >=0.5 being spam.
 classify :: SpamDB -> [ByteString] -> Double
