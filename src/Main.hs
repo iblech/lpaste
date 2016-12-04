@@ -5,27 +5,28 @@
 
 module Main (main) where
 
-import Hpaste.Config
-import Hpaste.Controller.Activity as Activity
-import Hpaste.Controller.Browse as Browse
-import Hpaste.Controller.Diff as Diff
-import Hpaste.Controller.Home as Home
-import Hpaste.Controller.New as New
-import Hpaste.Controller.Paste as Paste
-import Hpaste.Controller.Raw as Raw
-import Hpaste.Controller.Report as Report
-import Hpaste.Controller.Reported as Reported
-import Hpaste.Controller.Rss as Rss
-import Hpaste.Controller.Script as Script
-import Hpaste.Model.Announcer (newAnnouncer)
-import Hpaste.Model.Spam (generateSpamDB)
-import Hpaste.Types
-import Hpaste.Types.Announcer
-import Snap.App
-import Spam
-import Snap.Http.Server hiding (Config)
-import Snap.Util.FileServe
-import System.Environment
+import qualified Data.ByteString.Char8 as S8
+import           Hpaste.Config
+import           Hpaste.Controller.Activity as Activity
+import           Hpaste.Controller.Browse as Browse
+import           Hpaste.Controller.Diff as Diff
+import           Hpaste.Controller.Home as Home
+import           Hpaste.Controller.New as New
+import           Hpaste.Controller.Paste as Paste
+import           Hpaste.Controller.Raw as Raw
+import           Hpaste.Controller.Report as Report
+import           Hpaste.Controller.Reported as Reported
+import           Hpaste.Controller.Rss as Rss
+import           Hpaste.Controller.Script as Script
+import           Hpaste.Model.Announcer (newAnnouncer)
+import           Hpaste.Model.Spam (generateSpamDB)
+import           Hpaste.Types
+import           Hpaste.Types.Announcer
+import           Snap.App
+import           Snap.Http.Server hiding (Config)
+import           Snap.Util.FileServe
+import           Spam
+import           System.Environment
 
 -- | Main entry point.
 main :: IO ()
@@ -41,6 +42,11 @@ main = do
       setUnicodeLocale "en_US"
       db <- readDB "spam.db"
       summarizeDB db
+    [_, "spam", "classify"] -> do
+      setUnicodeLocale "en_US"
+      db <- readDB "spam.db"
+      input <- getContents
+      print (classify db (listTokens (S8.pack input)))
     (cpath:_) -> do
       config <- getConfig cpath
       announces <- newAnnouncer (configAnnounce config)
