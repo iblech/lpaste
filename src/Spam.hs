@@ -60,8 +60,7 @@ readDB fp = do
       case result of
         Right !db -> return db
         _ -> do
-          putStrLn "Failed to read spam database. Defaulting to empty one ..."
-          return emptyDB
+          error "Failed to read spam db."
     else return emptyDB
   where emptyDB = let c = (Corpus 0 Trie.empty)
                   in DB c c
