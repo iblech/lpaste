@@ -37,15 +37,16 @@ makeTokens p =
 -- corpus.
 generateSpamDB :: Model c s ()
 generateSpamDB = do
-  good <-
+  !good <-
     queryCorpus
       ["SELECT content", "FROM paste", "WHERE NOT flaggedspam", "LIMIT 100"]
       ()
-  bad <-
+  !bad <-
     queryCorpus
       ["SELECT content", "FROM paste", "WHERE flaggedspam", "LIMIT 100"]
       ()
-  liftIO (writeDB "spam.db" DB {dbGood = good, dbBad = bad})
+  return ()
+  {-liftIO (writeDB "spam.db" DB {dbGood = good, dbBad = bad})-}
 
 -- | Run a query returning a single string field, and build a corpus
 -- of messages from each row.
