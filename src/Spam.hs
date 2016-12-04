@@ -184,3 +184,16 @@ spam = 0.5
 -- | Minimum token length, anything smaller is ignored.
 minTokenLen :: Int
 minTokenLen = 4
+
+demostr :: ByteString
+demostr = "Top 10 ham tokens\n\
+           \  Capture: 521707\n\
+           \  Start: 268229\n\
+           \  Finish: 254574\n\
+           \  import: 207640\n\
+           \  http: 156636\n\
+           \  where: 115778\n\
+           \  studio: 93630\n\
+           \  Data: 91579\n\
+           \  String: 75796\n\
+           \  return: 74023"
