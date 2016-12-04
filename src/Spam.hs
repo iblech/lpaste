@@ -141,7 +141,7 @@ insertTokens trie bytes =
     else case S.span constituent bytes of
            (token, rest) ->
              insertTokens
-               (if not (S.null token)
+               (if S.length token >= minTokenLen
                   then Trie.insertWith' (+) token 1 trie
                   else trie)
                (S.drop 1 rest)
@@ -157,7 +157,7 @@ listTokens = go []
         else case S.span constituent bytes of
                (token, rest) ->
                  go
-                   (if S.null token
+                   (if S.length token >= minTokenLen
                       then acc
                       else (token : acc))
                    (S.drop 1 rest)
@@ -181,3 +181,7 @@ occurances = 1 -- Turn this up to 5 when the corpus gets bigger.
 -- | Minimum level for something to be considered spam.
 spam :: Double
 spam = 0.5
+
+-- | Minimum token length, anything smaller is ignored.
+minTokenLen :: Int
+minTokenLen = 4
