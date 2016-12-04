@@ -61,5 +61,5 @@ queryCorpus q ps = do
             (fromString (unlines q))
             ps
             (Corpus 0 Trie.empty)
-            (\(!(Corpus messages histogram)) (Only !message) ->
+            (\(!(Corpus !messages !histogram)) (Only !message) ->
                return (Corpus (messages + 1) (insertTokens histogram message)))))
