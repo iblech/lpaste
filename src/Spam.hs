@@ -140,7 +140,7 @@ insertTokens trie bytes =
     else case S.span constituent bytes of
            (token, rest) ->
              insertTokens
-               (if S.length token >= minTokenLen
+               (if S.length token >= minTokenLen && not (S.all digital token)
                   then Trie.insertWith' (+) token 1 trie
                   else trie)
                (S.drop 1 rest)
@@ -156,9 +156,10 @@ listTokens = go []
         else case S.span constituent bytes of
                (token, rest) ->
                  go
-                   (if S.length token >= minTokenLen
-                      then acc
-                      else (token : acc))
+                   (if S.length token >= minTokenLen &&
+                       not (S.all digital token)
+                      then (token : acc)
+                      else acc)
                    (S.drop 1 rest)
 {-# INLINE listTokens #-}
 
@@ -173,6 +174,10 @@ constituent c =
     dash = 45
 {-# INLINE constituent #-}
 
+-- | Is a digit?
+digital :: Word8 -> Bool
+digital c = (c >= 48 && c <= 57)
+
 -- | Number of occurances before we care about a token.
 occurances :: Double
 occurances = 3 -- Turn this up to 5 when the corpus gets bigger.
@@ -184,16 +189,3 @@ spam = 0.5
 -- | Minimum token length, anything smaller is ignored.
 minTokenLen :: Int
 minTokenLen = 4
-
-demostr :: ByteString
-demostr = "Top 10 ham tokens\n\
-           \  Capture: 521707\n\
-           \  Start: 268229\n\
-           \  Finish: 254574\n\
-           \  import: 207640\n\
-           \  http: 156636\n\
-           \  where: 115778\n\
-           \  studio: 93630\n\
-           \  Data: 91579\n\
-           \  String: 75796\n\
-           \  return: 74023"
