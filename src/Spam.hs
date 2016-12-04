@@ -1,3 +1,6 @@
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -6,26 +9,26 @@
 
 module Spam
   (SpamDB(..)
+  ,Corpus(..)
   ,readDB
   ,writeDB
+  ,listTokens
+  ,insertTokens
   ,classify
   ,spam
-  ,corpus
-  ,Token(..))
+  ,corpus)
   where
 
 import           Data.ByteString (ByteString)
+import qualified Data.ByteString as S
+import           Data.Conduit
 import           Data.List
 import           Data.Maybe
-import           Data.Monoid
 import           Data.Trie (Trie)
 import qualified Data.Trie as Trie
 import qualified Data.Trie.Convenience as Trie
+import           Data.Word
 import           System.Directory
-
--- | A token from a document.
-newtype Token = Token ByteString
-  deriving (Ord,Eq,Show,Read)
 
 -- | Spam database.
 data SpamDB = DB
@@ -44,20 +47,11 @@ instance Read SpamDB where
         let (x, a, y, b) = read s
         in DB (Corpus x (Trie.fromList a)) (Corpus y (Trie.fromList b))
 
-instance Monoid SpamDB where
-  mempty = DB mempty mempty
-  mappend (DB a x) (DB b y) = DB (a <> b) (x <> y)
-
 -- | A corpus of pastes.
 data Corpus = Corpus
-  { corpusMessages :: Double
-  , corpusHistogram :: Trie Double
-  }
-
-instance Monoid Corpus where
-  mempty = Corpus 0 Trie.empty
-  mappend (Corpus a x) (Corpus b y) =
-    Corpus (a + b) (Trie.unionWith (+) x y)
+  { corpusMessages :: !Double
+  , corpusHistogram :: !(Trie Double)
+  } deriving (Show)
 
 -- | Read a spam database from file.
 readDB :: FilePath -> IO SpamDB
@@ -70,15 +64,17 @@ readDB fp = do
         [(db, "")] -> return db
         _ -> do
           putStrLn "Failed to read spam database. Defaulting to empty one ..."
-          return mempty
-    else return mempty
+          return emptyDB
+    else return emptyDB
+  where emptyDB = let c = (Corpus 0 Trie.empty)
+                  in DB c c
 
 -- | Write the spam database to file.
 writeDB :: FilePath -> SpamDB -> IO ()
 writeDB fp = writeFile fp . show
 
 -- | Classify a paste from 0 to 1. >=0.5 being spam.
-classify :: SpamDB -> [Token] -> Double
+classify :: SpamDB -> [ByteString] -> Double
 classify (DB bad good) = combine . mapMaybe (probability bad good)
 
 -- | Combine the probabilities of n tokens. The probability of a paste
@@ -90,8 +86,8 @@ combine probs = prod / (prod + foldl1' (*) (map (1 -) probs))
 
 -- | Probability of a token being spam given good and bad
 -- corpus. Nothing if we don't know/care.
-probability :: Corpus -> Corpus -> Token -> Maybe Double
-probability bad good (Token token) =
+probability :: Corpus -> Corpus -> ByteString -> Maybe Double
+probability bad good token =
   if g + b < occurances
      then Nothing
      else Just
@@ -103,18 +99,61 @@ probability bad good (Token token) =
         ngood = corpusMessages good
         nbad = corpusMessages bad
 
--- | Minimum level for something to be considered spam.
-spam :: Double
-spam = 0.5
+-- | Generate a corpus from a stream of documents.
+corpus :: Monad m => Consumer ByteString m Corpus
+corpus = go 0 Trie.empty
+  where
+    go !messages !histogram = do
+      result <- await
+      case result of
+        Nothing -> return (Corpus messages histogram)
+        Just message -> go (messages + 1) (insertTokens histogram message)
 
--- | Generate a corpus from a set of documents.
-corpus :: (string -> [Token]) -> [string] -> Corpus
-corpus tokenize = foldl' (<>) mempty . map (Corpus 1 . histogram . tokenize)
+-- | Insert tokens from @bytes@ into @trie@.
+insertTokens :: Trie Double -> ByteString -> Trie Double
+insertTokens trie bytes =
+  if S.null bytes
+    then trie
+    else case S.span constituent bytes of
+           (token, rest) ->
+             insertTokens
+               (if not (S.null token)
+                  then Trie.insertWith' (+) token 1 trie
+                  else trie)
+               (S.drop 1 rest)
+{-# INLINE insertTokens #-}
 
--- | Generate a histogram from a list of tokens.
-histogram :: [Token] -> Trie Double
-histogram = foldl' (\m (Token t) -> Trie.insertWith' (+) t 1 m) Trie.empty
+-- | List tokens from @bytes@.
+listTokens :: ByteString -> [ByteString]
+listTokens = go []
+  where
+    go acc bytes =
+      if S.null bytes
+        then acc
+        else case S.span constituent bytes of
+               (token, rest) ->
+                 go
+                   (if S.null token
+                      then acc
+                      else (token : acc))
+                   (S.drop 1 rest)
+{-# INLINE listTokens #-}
+
+-- | Is the character a constituent?
+constituent :: Word8 -> Bool
+constituent c =
+  c == dollar ||
+  c == dash ||
+  (c >= 97 && c <= 122) || (c >= 65 && c <= 90) || (c >= 48 && c <= 57)
+  where
+    dollar = 36
+    dash = 45
+{-# INLINE constituent #-}
 
 -- | Number of occurances before we care about a token.
 occurances :: Double
 occurances = 1 -- Turn this up to 5 when the corpus gets bigger.
+
+-- | Minimum level for something to be considered spam.
+spam :: Double
+spam = 0.5

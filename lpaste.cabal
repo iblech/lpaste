@@ -57,6 +57,8 @@ Executable lpaste
    ,process
    ,postgresql-simple
    ,bytestring-trie
+   ,MonadCatchIO-transformers
+   ,conduit
   Other-modules:
     Control.Monad.IO
     Data.Time.Relative

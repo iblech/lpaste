@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -8,12 +9,15 @@
 module Hpaste.Model.Spam
   where
 
-import           Control.Monad.IO.Class
+import           Control.Monad.Env (env)
+import           Control.Monad.Reader
 import           Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as S8
-import           Data.Char
 import           Data.Monoid
+import           Data.String
 import qualified Data.Text.Encoding as T
+import qualified Data.Trie as Trie
+import qualified Database.PostgreSQL.Simple as DB
+import           Database.PostgreSQL.Simple hiding (query)
 import           Hpaste.Types
 import           Snap.App
 import           Spam
@@ -23,48 +27,38 @@ classifyPaste :: SpamDB -> PasteSubmit -> Double
 classifyPaste db = classify db . makeTokens
 
 -- | Make tokens from a paste submission.
-makeTokens :: PasteSubmit -> [Token]
+makeTokens :: PasteSubmit -> [ByteString]
 makeTokens p =
-  tokens
-    ( T.encodeUtf8 (pasteSubmitTitle p)
-    , T.encodeUtf8 (pasteSubmitPaste p)
-    , T.encodeUtf8 (pasteSubmitAuthor p))
+  listTokens (T.encodeUtf8 (pasteSubmitTitle p)) <>
+  listTokens (T.encodeUtf8 (pasteSubmitPaste p)) <>
+  listTokens (T.encodeUtf8 (pasteSubmitAuthor p))
 
 -- | Re-generate the spam database based on the postgres database
 -- corpus.
 generateSpamDB :: Model c s ()
 generateSpamDB = do
-  good :: [(ByteString, ByteString, ByteString)] <-
-    query
-      [ "SELECT title, content, author"
-      , "FROM paste"
-      , "WHERE NOT flaggedspam"
-      , "LIMIT 100"
-      ]
+  good <-
+    queryCorpus
+      ["SELECT content", "FROM paste", "WHERE NOT flaggedspam", "LIMIT 100"]
       ()
-  bad :: [(ByteString, ByteString, ByteString)] <-
-    query
-      [ "SELECT title, content, author"
-      , "FROM paste"
-      , "WHERE flaggedspam"
-      , "LIMIT 100"
-      ]
+  bad <-
+    queryCorpus
+      ["SELECT content", "FROM paste", "WHERE flaggedspam", "LIMIT 100"]
       ()
-  liftIO
-    (do writeDB
-          "spam.db"
-          DB {dbGood = corpus tokens good, dbBad = corpus tokens bad})
+  liftIO (writeDB "spam.db" DB {dbGood = good, dbBad = bad})
 
--- | Make tokens from paste content.
-tokens :: (ByteString, ByteString, ByteString) -> [Token]
-tokens  (title, body, author) =
-  map (Token . ("t:" <>)) (chunks title) <>
-  map (Token . ("b:" <>)) (chunks body) <>
-  map (Token . ("a:" <>)) (chunks author)
-  where
-    chunks :: ByteString -> [ByteString]
-    chunks = S8.words . S8.map replace
-      where
-        replace c
-          | isAlphaNum c || elem c ['$','-','\''] = c
-          | otherwise = ' '
+-- | Run a query returning a single string field, and build a corpus
+-- of messages from each row.
+queryCorpus :: (ToRow ps) => [String] -> ps -> Model c s Corpus
+queryCorpus q ps = do
+  conn <- env modelStateConn
+  Model
+    (ReaderT
+       (\_ -> do
+          DB.fold
+            conn
+            (fromString (unlines q))
+            ps
+            (Corpus 0 Trie.empty)
+            (\(!(Corpus messages histogram)) (Only !message) ->
+               return (Corpus (messages + 1) (insertTokens histogram message)))))
