@@ -39,11 +39,11 @@ generateSpamDB :: Model c s ()
 generateSpamDB = do
   !good <-
     queryCorpus
-      ["SELECT content", "FROM paste", "WHERE NOT flaggedspam", "LIMIT 100"]
+      ["SELECT content", "FROM paste", "WHERE NOT flaggedspam", "LIMIT 1000"]
       ()
   !bad <-
     queryCorpus
-      ["SELECT content", "FROM paste", "WHERE flaggedspam", "LIMIT 100"]
+      ["SELECT content", "FROM paste", "WHERE flaggedspam", "LIMIT 1000"]
       ()
   return ()
   {-liftIO (writeDB "spam.db" DB {dbGood = good, dbBad = bad})-}
