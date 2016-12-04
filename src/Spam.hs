@@ -188,4 +188,4 @@ spam = 0.5
 
 -- | Minimum token length, anything smaller is ignored.
 minTokenLen :: Int
-minTokenLen = 4
+minTokenLen = 3
