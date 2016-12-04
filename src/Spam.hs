@@ -175,7 +175,7 @@ constituent c =
 
 -- | Number of occurances before we care about a token.
 occurances :: Double
-occurances = 1 -- Turn this up to 5 when the corpus gets bigger.
+occurances = 3 -- Turn this up to 5 when the corpus gets bigger.
 
 -- | Minimum level for something to be considered spam.
 spam :: Double
