@@ -46,7 +46,9 @@ main = do
       setUnicodeLocale "en_US"
       db <- readDB "spam.db"
       input <- getContents
-      print (classify db (listTokens (S8.pack input)))
+      let tokens = listTokens (S8.pack input)
+      print tokens
+      print (classify db tokens)
     (cpath:_) -> do
       config <- getConfig cpath
       announces <- newAnnouncer (configAnnounce config)
