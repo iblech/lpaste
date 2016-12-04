@@ -23,7 +23,9 @@ module Spam
 
 import           Data.Binary
 import           Data.ByteString (ByteString)
+import           Data.ByteString (ByteString)
 import qualified Data.ByteString as S
+import qualified Data.ByteString.Char8 as S8
 import           Data.Conduit
 import           Data.List
 import           Data.Maybe
@@ -80,13 +82,13 @@ summarizeDB (DB bad good) = do
      " ham, " ++ show (Trie.size (corpusHistogram bad)) ++ " spam)")
   putStrLn "Top 10 ham tokens"
   mapM_
-    print
+    (\(token, count) -> putStrLn ("  " ++ S8.unpack token ++ ": " ++ show count))
     (take
        10
        (sortBy (flip (comparing snd)) (Trie.toList (corpusHistogram good))))
   putStrLn "Top 10 spam tokens"
   mapM_
-    print
+    (\(token, count) -> putStrLn ("  " ++ S8.unpack token ++ ": " ++ show count))
     (take 10 (sortBy (flip (comparing snd)) (Trie.toList (corpusHistogram bad))))
   where
     messageCount = corpusMessages bad + corpusMessages good
