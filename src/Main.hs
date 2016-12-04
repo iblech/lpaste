@@ -31,11 +31,11 @@ main :: IO ()
 main = do
   args <- getArgs
   case args of
-    [cpath, "spam", "generate",query] -> do
+    [cpath, "spam", "generate"] -> do
       config <- getConfig cpath
       pool <- newPool (configPostgres config)
       setUnicodeLocale "en_US"
-      runDB () () pool (generateSpamDB query)
+      runDB () () pool generateSpamDB
     (cpath:_) -> do
       config <- getConfig cpath
       announces <- newAnnouncer (configAnnounce config)

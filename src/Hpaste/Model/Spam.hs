@@ -35,11 +35,17 @@ makeTokens p =
 
 -- | Re-generate the spam database based on the postgres database
 -- corpus.
-generateSpamDB :: String -> Model c s ()
-generateSpamDB q = do
-  !corp <- queryCorpus [q] ()
-  return ()
-{-liftIO (writeDB "spam.db" DB {dbGood = good, dbBad = bad})-}
+generateSpamDB :: Model c s ()
+generateSpamDB = do
+  !good <-
+    queryCorpus
+      ["SELECT substring(content for 2000)", "FROM paste", "WHERE NOT flaggedspam"]
+      ()
+  !bad <-
+    queryCorpus
+      ["SELECT substring(content for 2000)", "FROM paste", "WHERE flaggedspam"]
+      ()
+  liftIO (writeDB "spam.db" DB {dbGood = good, dbBad = bad})
 
 -- | Run a query returning a single string field, and build a corpus
 -- of messages from each row.
