@@ -73,7 +73,7 @@ writeDB fp = encodeFile fp
 -- | Print out a summary for the database.
 summarizeDB :: SpamDB -> IO ()
 summarizeDB (DB bad good) = do
-  putStrLn ("Messages: " ++ show messageCount)
+  putStrLn ("Messages: " ++ show (round messageCount :: Int))
   putStrLn
     ("Tokens: " ++
      show tokenCount ++
@@ -82,13 +82,15 @@ summarizeDB (DB bad good) = do
      " ham, " ++ show (Trie.size (corpusHistogram bad)) ++ " spam)")
   putStrLn "Top 10 ham tokens"
   mapM_
-    (\(token, count) -> putStrLn ("  " ++ S8.unpack token ++ ": " ++ show (round count::Int)))
+    (\(token, count) ->
+       putStrLn ("  " ++ S8.unpack token ++ ": " ++ show (round count :: Int)))
     (take
        10
        (sortBy (flip (comparing snd)) (Trie.toList (corpusHistogram good))))
   putStrLn "Top 10 spam tokens"
   mapM_
-    (\(token, count) -> putStrLn ("  " ++ S8.unpack token ++ ": " ++ show (round count::Int)))
+    (\(token, count) ->
+       putStrLn ("  " ++ S8.unpack token ++ ": " ++ show (round count :: Int)))
     (take 10 (sortBy (flip (comparing snd)) (Trie.toList (corpusHistogram bad))))
   where
     messageCount = corpusMessages bad + corpusMessages good
