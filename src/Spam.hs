@@ -54,7 +54,7 @@ readDB fp = do
     then do
       result <- decodeFileOrFail fp
       case result of
-        Right db -> return db
+        Right !db -> return db
         _ -> do
           putStrLn "Failed to read spam database. Defaulting to empty one ..."
           return emptyDB
