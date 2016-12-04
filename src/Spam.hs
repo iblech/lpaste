@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -19,6 +20,7 @@ module Spam
   ,corpus)
   where
 
+import           Data.Binary
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString as S
 import           Data.Conduit
@@ -27,31 +29,22 @@ import           Data.Maybe
 import           Data.Trie (Trie)
 import qualified Data.Trie as Trie
 import qualified Data.Trie.Convenience as Trie
-import           Data.Word
+import           GHC.Generics
 import           System.Directory
 
 -- | Spam database.
 data SpamDB = DB
   { dbBad :: !Corpus
   , dbGood :: !Corpus
-  }
-
-instance Show SpamDB where
-  show (DB (Corpus x a) (Corpus y b)) =
-    show (x, Trie.toList a, y, Trie.toList b)
-
-instance Read SpamDB where
-  readsPrec _ s = [(v, "")]
-    where
-      v =
-        let (x, a, y, b) = read s
-        in DB (Corpus x (Trie.fromList a)) (Corpus y (Trie.fromList b))
+  } deriving (Generic)
+instance Binary SpamDB
 
 -- | A corpus of pastes.
 data Corpus = Corpus
   { corpusMessages :: !Double
   , corpusHistogram :: !(Trie Double)
-  } deriving (Show)
+  } deriving (Show, Generic)
+instance Binary Corpus
 
 -- | Read a spam database from file.
 readDB :: FilePath -> IO SpamDB
@@ -59,9 +52,9 @@ readDB fp = do
   exists <- doesFileExist fp
   if exists
     then do
-      content <- readFile fp
-      case reads content of
-        [(db, "")] -> return db
+      result <- decodeFileOrFail fp
+      case result of
+        Right db -> return db
         _ -> do
           putStrLn "Failed to read spam database. Defaulting to empty one ..."
           return emptyDB
@@ -71,7 +64,7 @@ readDB fp = do
 
 -- | Write the spam database to file.
 writeDB :: FilePath -> SpamDB -> IO ()
-writeDB fp = writeFile fp . show
+writeDB fp = encodeFile fp
 
 -- | Classify a paste from 0 to 1. >=0.5 being spam.
 classify :: SpamDB -> [ByteString] -> Double

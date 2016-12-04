@@ -59,6 +59,7 @@ Executable lpaste
    ,bytestring-trie
    ,MonadCatchIO-transformers
    ,conduit
+   ,binary
   Other-modules:
     Control.Monad.IO
     Data.Time.Relative
