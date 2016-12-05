@@ -78,18 +78,18 @@ summarizeDB (DB bad good) = do
      " (" ++
      show (Trie.size (corpusHistogram good)) ++
      " ham, " ++ show (Trie.size (corpusHistogram bad)) ++ " spam)")
-  putStrLn "Top 10 ham tokens"
+  putStrLn "Top 20 ham tokens"
   mapM_
     (\(token, count) ->
        putStrLn ("  " ++ S8.unpack token ++ ": " ++ show (round count :: Int)))
     (take
-       10
+       20
        (sortBy (flip (comparing snd)) (Trie.toList (corpusHistogram good))))
-  putStrLn "Top 10 spam tokens"
+  putStrLn "Top 20 spam tokens"
   mapM_
     (\(token, count) ->
        putStrLn ("  " ++ S8.unpack token ++ ": " ++ show (round count :: Int)))
-    (take 10 (sortBy (flip (comparing snd)) (Trie.toList (corpusHistogram bad))))
+    (take 20 (sortBy (flip (comparing snd)) (Trie.toList (corpusHistogram bad))))
   where
     messageCount = corpusMessages bad + corpusMessages good
     tokenCount =
