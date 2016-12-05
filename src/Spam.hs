@@ -177,7 +177,6 @@ stopWord w =
     , "will"
     , "with"
     , "then"
-    ,  "will"
     ]
 
 -- | Sift out the top significant tokens from the list.
