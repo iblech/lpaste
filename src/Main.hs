@@ -27,6 +27,7 @@ import           Snap.Http.Server hiding (Config)
 import           Snap.Util.FileServe
 import           Spam
 import           System.Environment
+import           Text.Printf
 
 -- | Main entry point.
 main :: IO ()
@@ -48,7 +49,7 @@ main = do
       input <- getContents
       let tokens = listTokens 112 (S8.pack input)
       print tokens
-      print (classify db tokens)
+      printf "%f" (classify db tokens)
     (cpath:_) -> do
       config <- getConfig cpath
       announces <- newAnnouncer (configAnnounce config)
