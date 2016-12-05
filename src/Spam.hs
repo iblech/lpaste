@@ -142,7 +142,7 @@ insertTokens category trie bytes =
 
 -- | List tokens from @bytes@.
 listTokens :: Word8 -> ByteString -> [ByteString]
-listTokens category = go []
+listTokens category = nub . go []
   where
     go acc bytes =
       if S.null bytes
