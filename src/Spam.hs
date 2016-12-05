@@ -16,16 +16,15 @@ module Spam
   , listTokens
   , summarizeDB
   , insertTokens
+  , significantTokens
   , classify
   , spam
   ) where
 
 import           Data.Binary
 import           Data.ByteString (ByteString)
-import           Data.ByteString (ByteString)
 import qualified Data.ByteString as S
 import qualified Data.ByteString.Char8 as S8
-import           Data.Conduit
 import           Data.List
 import           Data.Maybe
 import           Data.Ord
@@ -159,6 +158,17 @@ listTokens category = go []
                  where star = 42
 {-# INLINE listTokens #-}
 
+-- | Sift out the top significant tokens from the list.
+significantTokens :: SpamDB -> [ByteString] -> [ByteString]
+significantTokens (DB bad good) =
+  map snd .
+  take maxSignificantTokens .
+  sortBy (flip (comparing fst)) . map (\token -> (rating token, token))
+  where
+    rating token =
+      fromMaybe 0 (Trie.lookup token (corpusHistogram bad)) +
+      fromMaybe 0 (Trie.lookup token (corpusHistogram good))
+
 -- | Is the character a constituent?
 constituent :: Word8 -> Bool
 constituent c =
@@ -185,3 +195,8 @@ spam = 0.5
 -- | Minimum token length, anything smaller is ignored.
 minTokenLen :: Int
 minTokenLen = 3
+
+-- | Maximum significant tokens to consider in a message that we're
+-- testing for spamminess.
+maxSignificantTokens :: Int
+maxSignificantTokens = 15

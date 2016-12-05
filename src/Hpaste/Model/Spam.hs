@@ -23,7 +23,7 @@ import           Snap.App
 import           Spam
 
 classifyPaste :: SpamDB -> PasteSubmit -> Double
-classifyPaste db = classify db . makeTokens
+classifyPaste db = classify db . significantTokens db . makeTokens
 
 -- | Make tokens from a paste submission.
 makeTokens :: PasteSubmit -> [ByteString]
