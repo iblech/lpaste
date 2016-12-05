@@ -141,7 +141,6 @@ insertTokens category trie bytes =
              where star = 42
 {-# INLINE insertTokens #-}
 
-
 -- We don't nub the tokens yet. But we will later.
 --
 -- [11] In general, spams are more repetitive than regular email. They

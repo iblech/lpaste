@@ -75,8 +75,15 @@ queryCorpus q ps = do
                      (messages + 1)
                      (insertTokens
                         t
-                        (insertTokens a (insertTokens p histogram paste) author)
-                        title))))))
+                        (insertTokens
+                           a
+                           (insertTokens p histogram paste)
+                           (if author == "Anonymous Coward"
+                              then ""
+                              else author))
+                        (if title == "No title"
+                           then ""
+                           else title)))))))
   where
     t = 116
     p = 112
