@@ -49,7 +49,7 @@ main = do
       input <- getContents
       let tokens = listTokens 112 (S8.pack input)
       print tokens
-      printf "%f" (classify db tokens)
+      printf "%f\n" (classify db tokens)
     (cpath:_) -> do
       config <- getConfig cpath
       announces <- newAnnouncer (configAnnounce config)
