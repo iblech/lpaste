@@ -12,6 +12,7 @@ module Hpaste.Model.Spam
 import           Control.Monad.Env (env)
 import           Control.Monad.Reader
 import           Data.ByteString (ByteString)
+import           Data.List
 import           Data.Monoid
 import           Data.String
 import qualified Data.Text.Encoding as T
@@ -28,13 +29,14 @@ classifyPaste db = classify db . significantTokens db . makeTokens
 -- | Make tokens from a paste submission.
 makeTokens :: PasteSubmit -> [ByteString]
 makeTokens paste =
-  (if pasteSubmitTitle paste == "No title"
-     then []
-     else listTokens t (T.encodeUtf8 (pasteSubmitTitle paste))) <>
-  listTokens p (T.encodeUtf8 (pasteSubmitPaste paste)) <>
-  (if pasteSubmitAuthor paste == "Anonymous Coward"
-     then []
-     else listTokens a (T.encodeUtf8 (pasteSubmitAuthor paste)))
+  nub
+    ((if pasteSubmitTitle paste == "No title"
+        then []
+        else listTokens t (T.encodeUtf8 (pasteSubmitTitle paste))) <>
+     listTokens p (T.encodeUtf8 (pasteSubmitPaste paste)) <>
+     (if pasteSubmitAuthor paste == "Anonymous Coward"
+        then []
+        else listTokens a (T.encodeUtf8 (pasteSubmitAuthor paste))))
   where
     t = 116
     p = 112
