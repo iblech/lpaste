@@ -98,51 +98,54 @@ pasteForm spamDB channels languages defChan annotatePaste editPaste = do
   -- parentPasteId = A). This is because when when we're editing an
   -- annotation, after editing we want to redirect to the original paste, not
   -- the annotation.
-  let parentPasteId = mbOriginal >>= \p ->
-                        case pasteType p of
-                          AnnotationOf x -> Just x
-                          _ -> Nothing
-  let formlet = PasteFormlet {
-          pfSubmitted = submittedPrivate || submittedPublic
-        , pfErrors    = []
-        , pfParams    = params
-        , pfChannels  = channels
+  let parentPasteId =
+        mbOriginal >>= \p ->
+          case pasteType p of
+            AnnotationOf x -> Just x
+            _ -> Nothing
+  let formlet =
+        PasteFormlet
+        { pfSubmitted = submittedPrivate || submittedPublic
+        , pfErrors = []
+        , pfParams = params
+        , pfChannels = channels
         , pfLanguages = languages
-        , pfDefChan   = defChan
+        , pfDefChan = defChan
         , pfAnnotatePaste = (,) <$> annotatePaste <*> mbLatest
-        , pfEditPaste     = (,) <$> editPaste     <*> mbLatest
+        , pfEditPaste = (,) <$> editPaste <*> mbLatest
         , pfContent = pastePaste <$> mbLatest
         }
-      (getValue,_) = pasteFormlet formlet
+      (getValue, _) = pasteFormlet formlet
       value = formletValue getValue params
       errors = either id (const []) value
-      (_,html) = pasteFormlet formlet { pfErrors = errors }
+      (_, html) = pasteFormlet formlet {pfErrors = errors}
       val = either (const Nothing) Just $ value
   case val of
     Nothing -> return ()
-    Just PasteSubmit{pasteSubmitSpamTrap=Just{}} -> goHome
+    Just PasteSubmit {pasteSubmitSpamTrap = Just {}} -> goHome
     Just paste -> do
       let spamrating = classifyPaste spamDB paste
-      liftIO (writeFile "/tmp/spam-test"
-                (show paste ++ "\n\n" ++
-                 show (makeTokens paste) ++
-                 "\n\n" ++
-                 show spamrating))
+      liftIO
+        (appendFile
+           "/tmp/spam-test"
+           (show paste ++
+            "\n" ++ show (makeTokens paste) ++ "\n" ++ show spamrating ++ "\n\n"))
       if spamrating >= spam ||
          T.isInfixOf "http://" (pasteSubmitTitle paste) ||
          T.isInfixOf "https://" (pasteSubmitTitle paste)
-         then goSpamBlocked
-         else do
-           resetCache Key.Home
-           mapM_ (resetCache . Key.Paste) $
-             nub $ catMaybes [pasteSubmitId paste, parentPasteId]
-           let possibleSpam =
-                 any (`T.isInfixOf` (pasteSubmitPaste paste))
-                     ["http://","https://","hack","cvv","passwords"]
-               finalPublic = not possibleSpam && submittedPublic
-           pid <- model $ createPaste languages channels paste
-                                      spamrating finalPublic
-           mapM_ redirectToPaste (parentPasteId <|> pid)
+        then goSpamBlocked
+        else do
+          resetCache Key.Home
+          mapM_ (resetCache . Key.Paste) $
+            nub $ catMaybes [pasteSubmitId paste, parentPasteId]
+          let possibleSpam =
+                any
+                  (`T.isInfixOf` (pasteSubmitPaste paste))
+                  ["http://", "https://", "hack", "cvv", "passwords"]
+              finalPublic = not possibleSpam && submittedPublic
+          pid <-
+            model $ createPaste languages channels paste spamrating finalPublic
+          mapM_ redirectToPaste (parentPasteId <|> pid)
   return html
 
 -- | Go back to the home page with a spam indication.
