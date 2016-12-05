@@ -141,6 +141,18 @@ insertTokens category trie bytes =
              where star = 42
 {-# INLINE insertTokens #-}
 
+
+-- We don't nub the tokens yet. But we will later.
+--
+-- [11] In general, spams are more repetitive than regular email. They
+-- want to pound that message home. I currently don't allow duplicates
+-- in the top 15 tokens, because you could get a false positive if the
+-- sender happens to use some bad word multiple times. (In my current
+-- filter, ``dick'' has a spam probabilty of .9999, but it's also a
+-- name.) It seems we should at least notice duplication though, so I
+-- may try allowing up to two of each token, as Brian Burton does in
+-- SpamProbe.
+
 -- | List tokens from @bytes@.
 listTokens :: Word8 -> ByteString -> [ByteString]
 listTokens category = go []
