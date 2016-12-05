@@ -46,7 +46,7 @@ main = do
       setUnicodeLocale "en_US"
       db <- readDB "spam.db"
       input <- getContents
-      let tokens = listTokens (S8.pack input)
+      let tokens = listTokens 105 (S8.pack input)
       print tokens
       print (classify db tokens)
     (cpath:_) -> do

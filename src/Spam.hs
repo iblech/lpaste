@@ -9,17 +9,16 @@
 -- | Spam detection.
 
 module Spam
-  (SpamDB(..)
-  ,Corpus(..)
-  ,readDB
-  ,writeDB
-  ,listTokens
-  ,summarizeDB
-  ,insertTokens
-  ,classify
-  ,spam
-  ,corpus)
-  where
+  ( SpamDB(..)
+  , Corpus(..)
+  , readDB
+  , writeDB
+  , listTokens
+  , summarizeDB
+  , insertTokens
+  , classify
+  , spam
+  ) where
 
 import           Data.Binary
 import           Data.ByteString (ByteString)
@@ -122,33 +121,29 @@ probability bad good token =
         ngood = corpusMessages good
         nbad = corpusMessages bad
 
--- | Generate a corpus from a stream of documents.
-corpus :: Monad m => Consumer ByteString m Corpus
-corpus = go 0 Trie.empty
-  where
-    go !messages !histogram = do
-      result <- await
-      case result of
-        Nothing -> return (Corpus messages histogram)
-        Just message -> go (messages + 1) (insertTokens histogram message)
-
 -- | Insert tokens from @bytes@ into @trie@.
-insertTokens :: Trie Double -> ByteString -> Trie Double
-insertTokens trie bytes =
+insertTokens :: Word8 -> Trie Double -> ByteString -> Trie Double
+insertTokens category trie bytes =
   if S.null bytes
     then trie
     else case S.span constituent bytes of
            (token, rest) ->
              insertTokens
+               category
                (if S.length token >= minTokenLen && not (S.all digital token)
-                  then Trie.insertWith' (+) token 1 trie
+                  then Trie.insertWith'
+                         (+)
+                         (S.cons category (S.cons star token))
+                         1
+                         trie
                   else trie)
                (S.drop 1 rest)
+             where star = 42
 {-# INLINE insertTokens #-}
 
 -- | List tokens from @bytes@.
-listTokens :: ByteString -> [ByteString]
-listTokens = go []
+listTokens :: Word8 -> ByteString -> [ByteString]
+listTokens category = go []
   where
     go acc bytes =
       if S.null bytes
@@ -158,9 +153,10 @@ listTokens = go []
                  go
                    (if S.length token >= minTokenLen &&
                        not (S.all digital token)
-                      then (token : acc)
+                      then (S.cons category (S.cons star token) : acc)
                       else acc)
                    (S.drop 1 rest)
+                 where star = 42
 {-# INLINE listTokens #-}
 
 -- | Is the character a constituent?

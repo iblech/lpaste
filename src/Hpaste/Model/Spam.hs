@@ -22,16 +22,19 @@ import           Hpaste.Types
 import           Snap.App
 import           Spam
 
--- | Classify a paste.
 classifyPaste :: SpamDB -> PasteSubmit -> Double
 classifyPaste db = classify db . makeTokens
 
 -- | Make tokens from a paste submission.
 makeTokens :: PasteSubmit -> [ByteString]
-makeTokens p =
-  listTokens (T.encodeUtf8 (pasteSubmitTitle p)) <>
-  listTokens (T.encodeUtf8 (pasteSubmitPaste p)) <>
-  listTokens (T.encodeUtf8 (pasteSubmitAuthor p))
+makeTokens paste =
+  listTokens t (T.encodeUtf8 (pasteSubmitTitle paste)) <>
+  listTokens p (T.encodeUtf8 (pasteSubmitPaste paste)) <>
+  listTokens a (T.encodeUtf8 (pasteSubmitAuthor paste))
+  where
+    t = 116
+    p = 112
+    a = 97
 
 -- | Re-generate the spam database based on the postgres database
 -- corpus.
@@ -39,11 +42,11 @@ generateSpamDB :: Model c s ()
 generateSpamDB = do
   !good <-
     queryCorpus
-      ["SELECT substring(content for 2000)", "FROM paste", "WHERE NOT flaggedspam"]
+      ["SELECT substring(title for 2000),substring(author for 2000),substring(content for 2000)", "FROM paste", "WHERE NOT flaggedspam"]
       ()
   !bad <-
     queryCorpus
-      ["SELECT substring(content for 2000)", "FROM paste", "WHERE flaggedspam"]
+      ["SELECT substring(title for 2000),substring(author for 2000),substring(content for 2000)", "FROM paste", "WHERE flaggedspam"]
       ()
   liftIO (writeDB "spam.db" DB {dbGood = good, dbBad = bad})
 
@@ -60,5 +63,15 @@ queryCorpus q ps = do
              (fromString (unlines q))
              ps
              (Corpus 0 Trie.empty)
-             (\(!(Corpus !messages !histogram)) (Only !message) ->
-                return (Corpus (messages + 1) (insertTokens histogram message))))))
+             (\(!(Corpus !messages !histogram)) (!title, !author, !paste) ->
+                return
+                  (Corpus
+                     (messages + 1)
+                     (insertTokens
+                        t
+                        (insertTokens a (insertTokens p histogram paste) author)
+                        title))))))
+  where
+    t = 116
+    p = 112
+    a = 97
