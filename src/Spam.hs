@@ -129,7 +129,8 @@ insertTokens category trie bytes =
            (token, rest) ->
              insertTokens
                category
-               (if S.length token >= minTokenLen && not (S.all digital token)
+               (if S.length token >= minTokenLen &&
+                   not (S.all digital token) && not (stopWord token)
                   then Trie.insertWith'
                          (+)
                          (S.cons category (S.cons star token))
@@ -151,12 +152,33 @@ listTokens category = go []
                (token, rest) ->
                  go
                    (if S.length token >= minTokenLen &&
-                       not (S.all digital token)
+                       not (S.all digital token) && not (stopWord token)
                       then (S.cons category (S.cons star token) : acc)
                       else acc)
                    (S.drop 1 rest)
                  where star = 42
 {-# INLINE listTokens #-}
+
+-- | Is the word a stop word?
+stopWord :: ByteString -> Bool
+stopWord w =
+  elem
+    w
+    [ "and"
+    , "are"
+    , "for"
+    , "from"
+    , "has"
+    , "that"
+    , "the"
+    , "its"
+    , "was"
+    , "were"
+    , "will"
+    , "with"
+    , "then"
+    ,  "will"
+    ]
 
 -- | Sift out the top significant tokens from the list.
 significantTokens :: SpamDB -> [ByteString] -> [ByteString]
