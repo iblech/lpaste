@@ -6,6 +6,7 @@
 module Main (main) where
 
 import qualified Data.ByteString.Char8 as S8
+import           Data.List
 import           Hpaste.Config
 import           Hpaste.Controller.Activity as Activity
 import           Hpaste.Controller.Browse as Browse
