@@ -28,9 +28,13 @@ classifyPaste db = classify db . significantTokens db . makeTokens
 -- | Make tokens from a paste submission.
 makeTokens :: PasteSubmit -> [ByteString]
 makeTokens paste =
-  listTokens t (T.encodeUtf8 (pasteSubmitTitle paste)) <>
+  (if pasteSubmitTitle paste == "No title"
+     then []
+     else listTokens t (T.encodeUtf8 (pasteSubmitTitle paste))) <>
   listTokens p (T.encodeUtf8 (pasteSubmitPaste paste)) <>
-  listTokens a (T.encodeUtf8 (pasteSubmitAuthor paste))
+  (if pasteSubmitAuthor paste == "Anonymous Coward"
+     then []
+     else listTokens a (T.encodeUtf8 (pasteSubmitAuthor paste)))
   where
     t = 116
     p = 112
