@@ -12,6 +12,7 @@ module Hpaste.Model.Spam
 import           Control.Monad.Env (env)
 import           Control.Monad.Reader
 import           Data.ByteString (ByteString)
+import qualified Data.ByteString as S
 import           Data.List
 import           Data.Monoid
 import           Data.String
@@ -42,6 +43,25 @@ makeTokens paste =
     p = 112
     a = 97
 
+-- | Read through undecided pastes and list pastes which seem suspicious.
+analyzeSuspicious :: SpamDB -> Model c s ()
+analyzeSuspicious db = do
+  conn <- env modelStateConn
+  Model
+    (ReaderT
+       (const
+          (DB.fold
+             conn
+             "SELECT id, substring(content for 2000) FROM paste WHERE not spamdecided"
+             ()
+             ()
+             (\() (!id, !paste) ->
+                let tokens = listTokens 112 paste
+                    rating=classify db (significantTokens db tokens)
+                in if rating >= spam
+                      then liftIO (print (id::Int,rating,S.take 100 paste))
+                      else pure ()))))
+
 -- | Re-generate the spam database based on the postgres database
 -- corpus.
 generateSpamDB :: Model c s ()
@@ -63,7 +83,7 @@ queryCorpus q ps = do
   conn <- env modelStateConn
   Model
     (ReaderT
-       (\_ -> do
+       (const
           (DB.fold
              conn
              (fromString (unlines q))

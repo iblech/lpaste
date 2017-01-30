@@ -20,7 +20,7 @@ import           Hpaste.Controller.Reported as Reported
 import           Hpaste.Controller.Rss as Rss
 import           Hpaste.Controller.Script as Script
 import           Hpaste.Model.Announcer (newAnnouncer)
-import           Hpaste.Model.Spam (generateSpamDB)
+import           Hpaste.Model.Spam (generateSpamDB,analyzeSuspicious)
 import           Hpaste.Types
 import           Hpaste.Types.Announcer
 import           Snap.App
@@ -35,6 +35,12 @@ main :: IO ()
 main = do
   args <- getArgs
   case args of
+    [cpath, "spam", "analyze"] -> do
+      config <- getConfig cpath
+      pool <- newPool (configPostgres config)
+      setUnicodeLocale "en_US"
+      db <- readDB "spam.db"
+      runDB () () pool (analyzeSuspicious db)
     [cpath, "spam", "generate"] -> do
       config <- getConfig cpath
       pool <- newPool (configPostgres config)
