@@ -61,7 +61,7 @@ analyzeSuspicious db = do
                 let tokens = listTokens 112 paste
                     rating=classify db (significantTokens db tokens)
                 in if rating >= spam
-                      then liftIO (putStrLn ((show (id::Int)) ++ " " ++ printf "%f" rating ++ " " ++ S8.unpack (S.take 100 paste)))
+                      then liftIO (putStrLn ((show (id::Int)) ++ " " ++ printf "%f" rating ++ " " ++ show (S.take 100 paste)))
                       else pure ()))))
 
 -- | Re-generate the spam database based on the postgres database
