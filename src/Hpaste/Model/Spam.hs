@@ -13,6 +13,7 @@ import           Control.Monad.Env (env)
 import           Control.Monad.Reader
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString as S
+import qualified Data.ByteString.Char8 as S8
 import           Data.List
 import           Data.Monoid
 import           Data.String
@@ -23,6 +24,7 @@ import           Database.PostgreSQL.Simple hiding (query)
 import           Hpaste.Types
 import           Snap.App
 import           Spam
+import           Text.Printf
 
 classifyPaste :: SpamDB -> PasteSubmit -> Double
 classifyPaste db = classify db . significantTokens db . makeTokens
@@ -59,7 +61,7 @@ analyzeSuspicious db = do
                 let tokens = listTokens 112 paste
                     rating=classify db (significantTokens db tokens)
                 in if rating >= spam
-                      then liftIO (print (id::Int,rating,S.take 100 paste))
+                      then liftIO (putStrLn ((show (id::Int)) ++ " " ++ printf "%f" rating ++ " " ++ S8.unpack (S.take 100 paste)))
                       else pure ()))))
 
 -- | Re-generate the spam database based on the postgres database
