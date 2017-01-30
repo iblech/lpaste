@@ -133,9 +133,9 @@ pasteForm spamDB channels languages defChan annotatePaste editPaste = do
                  "/tmp/spam-blocked"
                  (show paste ++
                   "\n" ++ show (makeTokens paste) ++ "\n" ++ printf "%f" spamrating ++ "\n\n")))
-      if spamrating >= spam ||
-         T.isInfixOf "http://" (pasteSubmitTitle paste) ||
-         T.isInfixOf "https://" (pasteSubmitTitle paste)
+      if T.isInfixOf "http://" (pasteSubmitTitle paste) ||
+         T.isInfixOf "https://" (pasteSubmitTitle paste) ||
+         spamrating >= spam
         then goSpamBlocked
         else do
           resetCache Key.Home
