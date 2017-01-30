@@ -74,7 +74,7 @@ foot = H.div ! aClass "footer" $ p $
   //
   lnk "http://book.realworldhaskell.org/" "Real World Haskell"
   //
-  lnk "http://haskell.org/" "Haskell.org"
+  lnk "https://haskell.org/" "Haskell.org"
   //
   lnk "http://planet.haskell.org/" "Planet Haskell"
 
