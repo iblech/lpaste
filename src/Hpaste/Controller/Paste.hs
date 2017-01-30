@@ -14,6 +14,7 @@ module Hpaste.Controller.Paste
   where
 
 import           Control.Applicative
+import           Control.Monad
 import           Control.Monad ((>=>))
 import           Control.Monad.IO.Class
 import           Data.ByteString (ByteString)
@@ -39,6 +40,7 @@ import           Snap.App
 import           Spam
 import           Text.Blaze.Html5 as H hiding (output)
 import           Text.Formlet
+import           Text.Printf
 
 -- | Handle the paste page.
 handle :: Bool -> HPCtrl ()
@@ -125,11 +127,12 @@ pasteForm spamDB channels languages defChan annotatePaste editPaste = do
     Just PasteSubmit {pasteSubmitSpamTrap = Just {}} -> goHome
     Just paste -> do
       let spamrating = classifyPaste spamDB paste
-      liftIO
-        (appendFile
-           "/tmp/spam-test"
-           (show paste ++
-            "\n" ++ show (makeTokens paste) ++ "\n" ++ show spamrating ++ "\n\n"))
+      when (spamrating >= spam)
+           (liftIO
+              (appendFile
+                 "/tmp/spam-blocked"
+                 (show paste ++
+                  "\n" ++ show (makeTokens paste) ++ "\n" ++ printf "%f" spamrating ++ "\n\n")))
       if spamrating >= spam ||
          T.isInfixOf "http://" (pasteSubmitTitle paste) ||
          T.isInfixOf "https://" (pasteSubmitTitle paste)
