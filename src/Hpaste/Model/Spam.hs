@@ -54,7 +54,7 @@ analyzeSuspicious db = do
        (const
           (DB.fold
              conn
-             "SELECT id, substring(content for 2000) FROM paste WHERE not spamdecided"
+             "SELECT id, substring(content for 2000) FROM paste WHERE not spamdecided AND public"
              ()
              ()
              (\() (!id, !paste) ->
