@@ -70,7 +70,7 @@ nav = do
 -- | Page footer.
 foot :: Markup
 foot = H.div ! aClass "footer" $ p $
-  lnk "http://github.com/chrisdone/lpaste" "Web site source code on Github"
+  lnk "https://github.com/chrisdone/lpaste" "Web site source code on Github"
   //
   lnk "http://book.realworldhaskell.org/" "Real World Haskell"
   //
