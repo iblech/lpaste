@@ -15,7 +15,6 @@ module Hpaste.Controller.Paste
 
 import           Control.Applicative
 import           Control.Monad
-import           Control.Monad ((>=>))
 import           Control.Monad.IO.Class
 import           Data.ByteString (ByteString)
 import           Data.ByteString.UTF8 (toString)
@@ -25,6 +24,7 @@ import           Data.Monoid
 import           Data.String (fromString)
 import           Data.Text (Text)
 import qualified Data.Text as T
+import           Data.Time
 import           Data.Traversable (for)
 import           Hpaste.Controller.Cache (cache,resetCache)
 import           Hpaste.Model.Channel (getChannels)
@@ -128,11 +128,12 @@ pasteForm spamDB channels languages defChan annotatePaste editPaste = do
     Just paste -> do
       let spamrating = classifyPaste spamDB paste
       when (spamrating >= spam)
-           (liftIO
-              (appendFile
-                 "/tmp/spam-blocked"
-                 (show paste ++
-                  "\n" ++ show (makeTokens paste) ++ "\n" ++ printf "%f" spamrating ++ "\n\n")))
+           (do now <- liftIO getCurrentTime
+               liftIO
+                 (appendFile
+                    "/tmp/spam-blocked"
+                    (show now ++ ": " ++ show paste ++
+                     "\n" ++ show (makeTokens paste) ++ "\n" ++ printf "%f" spamrating ++ "\n\n")))
       if T.isInfixOf "http://" (pasteSubmitTitle paste) ||
          T.isInfixOf "https://" (pasteSubmitTitle paste) ||
          spamrating >= spam
