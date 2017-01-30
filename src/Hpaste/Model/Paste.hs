@@ -103,7 +103,7 @@ getPasteById :: PasteId -> HPModel (Maybe Paste)
 getPasteById pid =
   listToMaybe <$> query ["SELECT ",pasteFields
                         ,"FROM public_paste"
-                        ,"WHERE id = ? AND NOT flaggedspam"]
+                        ,"WHERE id = ?"]
                         (Only pid)
 
 -- | Get a private paste by its id, regardless of any status.
@@ -111,7 +111,7 @@ getPrivatePasteById :: PasteId -> HPModel (Maybe Paste)
 getPrivatePasteById pid =
   listToMaybe <$> query ["SELECT",pasteFields
                         ,"FROM private_paste"
-                        ,"WHERE id = ? AND NOT flaggedspam"]
+                        ,"WHERE id = ?"]
                         (Only pid)
 
 -- | Get annotations of a paste.
@@ -119,7 +119,7 @@ getAnnotations :: PasteId -> HPModel [Paste]
 getAnnotations pid =
   query ["SELECT",pasteFields
         ,"FROM public_paste"
-        ,"WHERE annotation_of = ? AND NOT flaggedspam"
+        ,"WHERE annotation_of = ?"
         ,"ORDER BY created ASC"]
         (Only pid)
 
@@ -128,7 +128,7 @@ getRevisions :: PasteId -> HPModel [Paste]
 getRevisions pid = do
   query ["SELECT",pasteFields
         ,"FROM public_paste"
-        ,"WHERE revision_of = ? or id = ? AND NOT flaggedspam"
+        ,"WHERE revision_of = ? or id = ?"
         ,"ORDER BY created DESC"]
         (pid,pid)
 
