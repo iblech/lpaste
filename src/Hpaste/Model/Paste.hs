@@ -70,8 +70,8 @@ countPublicPastes :: Maybe String ->  Maybe Int -> HPModel Integer
 countPublicPastes mauthor mchanid = do
   rows <- single ["SELECT COUNT(*)"
                  ,"FROM public_toplevel_paste"
-                 ,"WHERE ((? IS NULL) OR (author = ?)) AND (? IS NULL OR channel = ?) AND spamrating < ?"]
-                 (mauthor,mauthor,mchanid,mchanid,spam)
+                 ,"WHERE ((? IS NULL) OR (author = ?)) AND (? IS NULL OR channel = ?)"]
+                 (mauthor,mauthor,mchanid,mchanid)
   return $ fromMaybe 0 rows
 
 -- | Get the latest pastes.
@@ -101,12 +101,12 @@ getPaginatedPastes mauthor mchannel pn@Pagination {..} = do
       [ "SELECT"
       , pasteFields
       , "FROM public_toplevel_paste"
-      , "WHERE ((? IS NULL) OR (author = ?)) AND (? IS NULL OR channel = ?) AND spamrating < ?"
+      , "WHERE ((? IS NULL) OR (author = ?)) AND (? IS NULL OR channel = ?)"
       , "ORDER BY created DESC"
       , "OFFSET " ++ show (max 0 (pnCurrentPage - 1) * pnPerPage)
       , "LIMIT " ++ show pnPerPage
       ]
-      (mauthor, mauthor, mchanid, mchanid, spam)
+      (mauthor, mauthor, mchanid, mchanid)
   return (pn {pnTotal = total}, rows)
 
 -- | Get a paste by its id.
