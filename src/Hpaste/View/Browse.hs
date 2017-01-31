@@ -67,10 +67,17 @@ browse now pn channels languages ps mauthor = do
                        (showChannel Nothing channels (pasteChannel latest))
                      void ", "
                      ago (pasteDate original) now)
-               lightNoTitleSection $
-                 highlightPaste
-                   languages
-                   latest {pastePaste = T.unlines (take 5 (T.lines (pastePaste latest)))}))
+               (H.a !. "browse-paste-link" ! A.href (toValue ("/" ++ show (pasteId original))))
+                 (lightNoTitleSection $
+                  highlightPaste
+                    languages
+                    latest
+                    { pastePaste =
+                        T.unlines
+                          (map
+                             (T.take 512)
+                             (take 5 (T.lines (T.take 1024 (pastePaste latest)))))
+                    })))
       ps
     pagination pn {pnPn = (pnPn pn) {pnShowDesc = False}}
   where
