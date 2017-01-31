@@ -334,19 +334,27 @@ table td {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /* New browse page */
 
-#browse .section-light {
+
+#browse .browse-paste {
+  padding-left: 1em;
+}
+
+#browse .browse-paste .section-light {
   background: #fff;
   border-top: 1px solid #eee;
   border-bottom: 1px solid #eee;
-  margin: 0.5em 0 1em 0;
-  padding: 0 0 0 1em;
+  margin: 0.5em 0 1em -1em;
+  padding: 0;
 }
+
 #browse .browse-paste-title {
   color: #4e6272;
-  padding-left: 1em;
   font-size: 19.5px;
 }
 
 #browse .pagination, #browse .browse-paste-author-channel {
-  padding-left: 1em;
+}
+
+#browse .section {
+  padding: 0;
 }
