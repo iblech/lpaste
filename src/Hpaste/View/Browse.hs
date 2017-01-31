@@ -45,6 +45,7 @@ page now pn chans langs ps mauthor =
 browse :: UTCTime -> PN -> [Channel] -> [Language] -> [(Paste, Paste)] -> Maybe String -> Html
 browse now pn channels languages ps mauthor = do
   darkSection title $ do
+    H.h1 (toHtml title)
     pagination pn
     mapM_
       (\(original, latest) ->
