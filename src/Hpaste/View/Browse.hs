@@ -71,7 +71,7 @@ browse now pn channels languages ps mauthor = do
                              void " in "
                              (a !
                               hrefURI
-                                (updateUrlParam "channel" (T.unpack (channelName channel)) $
+                                (updateUrlParam "channel" (T.unpack (T.drop 1 (channelName channel))) $
                                  updateUrlParam "pastes_page" "0" $ pnURI pn))
                                (H.strong
                                   (showChannel
