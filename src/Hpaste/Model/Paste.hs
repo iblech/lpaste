@@ -71,7 +71,7 @@ countPublicPastes mauthor mchanid = do
   rows <- single ["SELECT COUNT(*)"
                  ,"FROM public_toplevel_paste"
                  ,"WHERE ((? IS NULL) OR (author = ?)) AND (? IS NULL OR channel = ?) AND spamrating < ?"]
-                 (mauthor,mauthor,mchanid,spam)
+                 (mauthor,mauthor,mchanid,mchanid,spam)
   return $ fromMaybe 0 rows
 
 -- | Get the latest pastes.
@@ -106,7 +106,7 @@ getPaginatedPastes mauthor mchannel pn@Pagination {..} = do
       , "OFFSET " ++ show (max 0 (pnCurrentPage - 1) * pnPerPage)
       , "LIMIT " ++ show pnPerPage
       ]
-      (mauthor, mauthor, mchanid, spam)
+      (mauthor, mauthor, mchanid, mchanid, spam)
   return (pn {pnTotal = total}, rows)
 
 -- | Get a paste by its id.
