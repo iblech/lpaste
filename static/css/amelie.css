@@ -344,7 +344,7 @@ table td {
   border-top: 1px solid #eee;
   border-bottom: 1px solid #eee;
   margin: 0.5em 0 1em -1em;
-  padding: 0;
+  padding: 0 0 1em 1em;
 }
 
 #browse .browse-paste-title {
@@ -352,7 +352,8 @@ table td {
   font-size: 19.5px;
 }
 
-#browse .pagination, #browse .browse-paste-author-channel {
+#browse .pagination {
+  padding-left: 1em;
 }
 
 #browse .section {
