@@ -71,7 +71,7 @@ browse now pn channels languages ps mauthor = do
                      ago (pasteDate original) now
                      void " "
                      href ("/report/" ++ (show (pasteId original)) ++ "")
-                          ("Report spam"::String))
+                          ("Report/Delete"::String))
                (H.a !. "browse-paste-link" ! A.href (toValue ("/" ++ show (pasteId original))))
                  (lightNoTitleSection $
                   highlightPaste
