@@ -23,7 +23,8 @@ handle :: HPCtrl ()
 handle = do
   pn <- getPagination "pastes"
   author <- getStringMaybe "author"
-  (pn',pastes) <- model $ getPaginatedPastes author (pnPn pn)
+  channel <- getStringMaybe "channel"
+  (pn',pastes) <- model $ getPaginatedPastes author channel (pnPn pn)
   latestVersions <- mapM (model . getLatestVersion) pastes
   chans <- model getChannels
   langs <- model getLanguages

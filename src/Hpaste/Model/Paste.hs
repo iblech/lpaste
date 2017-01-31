@@ -66,12 +66,12 @@ markSpamPaste pid =
      void (exec ["DELETE FROM report WHERE paste = ?"] (Only pid))
 
 -- | Count public pastes.
-countPublicPastes :: Maybe String -> HPModel Integer
-countPublicPastes mauthor = do
+countPublicPastes :: Maybe String ->  Maybe Int -> HPModel Integer
+countPublicPastes mauthor mchanid = do
   rows <- single ["SELECT COUNT(*)"
                  ,"FROM public_toplevel_paste"
-                 ,"WHERE (? IS NULL) OR (author = ?) AND spamrating < ?"]
-                 (mauthor,mauthor,spam)
+                 ,"WHERE ((? IS NULL) OR (author = ?)) AND (? IS NULL OR channel = ?) AND spamrating < ?"]
+                 (mauthor,mauthor,mchanid,spam)
   return $ fromMaybe 0 rows
 
 -- | Get the latest pastes.
@@ -86,17 +86,28 @@ getLatestPastes channel =
        (spam,channel,channel)
 
 -- | Get some paginated pastes.
-getPaginatedPastes :: Maybe String -> Pagination -> HPModel (Pagination,[Paste])
-getPaginatedPastes mauthor pn@Pagination{..} = do
-  total <- countPublicPastes mauthor
-  rows <- query ["SELECT",pasteFields
-                ,"FROM public_toplevel_paste"
-                ,"WHERE (? IS NULL) OR (author = ?) AND spamrating < ?"
-                ,"ORDER BY created DESC"
-                ,"OFFSET " ++ show (max 0 (pnCurrentPage - 1) * pnPerPage)
-                ,"LIMIT " ++ show pnPerPage]
-                (mauthor,mauthor,spam)
-  return (pn { pnTotal = total },rows)
+getPaginatedPastes :: Maybe String -> Maybe String -> Pagination -> HPModel (Pagination,[Paste])
+getPaginatedPastes mauthor mchannel pn@Pagination {..} = do
+  mchanid <-
+    case mchannel of
+      Nothing -> pure Nothing
+      Just chanName ->
+        fmap
+          (fmap (\(Only i) -> i) . listToMaybe)
+          (query ["SELECT id FROM channel WHERE title = ?"] (Only chanName))
+  total <- countPublicPastes mauthor mchanid
+  rows <-
+    query
+      [ "SELECT"
+      , pasteFields
+      , "FROM public_toplevel_paste"
+      , "WHERE ((? IS NULL) OR (author = ?)) AND (? IS NULL OR channel = ?) AND spamrating < ?"
+      , "ORDER BY created DESC"
+      , "OFFSET " ++ show (max 0 (pnCurrentPage - 1) * pnPerPage)
+      , "LIMIT " ++ show pnPerPage
+      ]
+      (mauthor, mauthor, mchanid, spam)
+  return (pn {pnTotal = total}, rows)
 
 -- | Get a paste by its id.
 getPasteById :: PasteId -> HPModel (Maybe Paste)
