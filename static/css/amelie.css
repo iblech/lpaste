@@ -352,6 +352,12 @@ table td {
   font-size: 19.5px;
 }
 
+#browse .browse-paste-link:hover {
+  text-decoration: none;
+  border-top: 1px solid #2e659c;
+  border-bottom: 1px solid #2e659c;
+}
+
 #browse .pagination {
   padding-left: 1em;
 }
