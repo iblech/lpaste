@@ -354,6 +354,9 @@ table td {
 
 #browse .browse-paste-link:hover {
   text-decoration: none;
+}
+
+#browse .browse-paste-link:hover .section {
   border-top: 1px solid #2e659c;
   border-bottom: 1px solid #2e659c;
 }
