@@ -94,7 +94,7 @@ getPaginatedPastes mauthor mchannel pn@Pagination {..} = do
       Just chanName ->
         fmap
           (fmap (\(Only i) -> i) . listToMaybe)
-          (query ["SELECT id FROM channel WHERE title = ?"] (Only chanName))
+          (query ["SELECT id FROM channel WHERE title = ?"] (Only ("#" ++ chanName)))
   total <- countPublicPastes mauthor mchanid
   rows <-
     query
