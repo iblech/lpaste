@@ -50,9 +50,7 @@ browse now pn channels languages ps mauthor = do
       (\(original, latest) ->
          (H.div !. "browse-paste")
            (do (H.div !. "browse-paste-title")
-                 ((do H.strong (showLanguage languages (pasteLanguage latest))
-                      void ": "
-                      H.em (pasteLink original (pasteTitle latest))))
+                 (pasteLink original (pasteTitle latest))
                (H.div !. "browse-paste-author-channel")
                  (do let authorLatest = T.unpack (pasteAuthor latest)
                          authorOriginal = T.unpack (pasteAuthor original)
