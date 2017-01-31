@@ -8,6 +8,7 @@ module Hpaste.View.Browse
   (page)
   where
 
+import           Data.List (find)
 import           Hpaste.Types
 import           Hpaste.View.Highlight (highlightPaste)
 import           Hpaste.View.Html
@@ -63,16 +64,29 @@ browse now pn channels languages ps mauthor = do
                          makeAuthorLink pn authorOriginal
                          ")"
                      case pasteChannel latest of
-                       Just{} -> do void " in "
-                                    H.strong
-                                      (showChannel Nothing channels (pasteChannel latest))
+                       Just chanId -> do
+                         case find ((== chanId) . channelId) channels of
+                           Nothing -> return ()
+                           Just channel -> do
+                             void " in "
+                             (a !
+                              hrefURI
+                                (updateUrlParam "channel" (T.unpack (channelName channel)) $
+                                 updateUrlParam "pastes_page" "0" $ pnURI pn))
+                               (H.strong
+                                  (showChannel
+                                     Nothing
+                                     channels
+                                     (pasteChannel latest)))
                        Nothing -> return ()
                      void ", "
                      ago (pasteDate original) now
                      void " "
-                     href ("/report/" ++ (show (pasteId original)) ++ "")
-                          ("Report/Delete"::String))
-               (H.a !. "browse-paste-link" ! A.href (toValue ("/" ++ show (pasteId original))))
+                     href
+                       ("/report/" ++ (show (pasteId original)) ++ "")
+                       ("Report/Delete" :: String))
+               (H.a !. "browse-paste-link" !
+                A.href (toValue ("/" ++ show (pasteId original))))
                  (lightNoTitleSection $
                   highlightPaste
                     languages
@@ -91,43 +105,6 @@ browse now pn channels languages ps mauthor = do
       case mauthor of
         Just author -> "Pastes by " ++ author
         Nothing -> "Latest pastes"
-
--- | View the paginated pastes.
-browse' :: UTCTime -> PN -> [Channel] -> [Language] -> [(Paste, Paste)] -> Maybe String -> Html
-browse' now pn channels languages ps mauthor = do
-  darkSection title $ do
-    pagination pn
-    table ! aClass "latest-pastes" $ do
-      tr $ mapM_ (th . (toHtml :: String -> Html)) $
-         ["Title"] ++ ["Author"|isNothing mauthor] ++ ["When","Language","Channel"]
-      pastes ps
-    pagination pn { pnPn = (pnPn pn) { pnShowDesc = False } }
-
-    where pastes = mapM_ $ \(original, latest) -> tr $ do
-                     td $ pasteLink original (pasteTitle latest)
-                     unless (isJust mauthor) $
-                       td $ do
-                         let authorLatest   = T.unpack (pasteAuthor latest)
-                             authorOriginal = T.unpack (pasteAuthor original)
-                         if authorLatest == authorOriginal
-                            then makeAuthorLink authorOriginal
-                            else do toMarkup authorLatest
-                                    void " (original by "
-                                    makeAuthorLink authorOriginal
-                                    ")"
-                     td $ ago (pasteDate original) now
-                     td $ showLanguage languages (pasteLanguage latest)
-                     td $ showChannel Nothing channels (pasteChannel latest)
-          makeAuthorLink author
-            | True {-validNick author-} = a ! hrefURI (authorUri author)
-                                            $ toHtml author
-            | otherwise                 = toHtml author
-          authorUri author = updateUrlParam "author" author
-                           $ updateUrlParam "pastes_page"   "0"
-                           $ pnURI pn
-          title = LT.pack $ case mauthor of
-            Just author -> "Pastes by " ++ author
-            Nothing -> "Latest pastes"
 
 makeAuthorLink :: PN -> String -> Html
 makeAuthorLink pn author
