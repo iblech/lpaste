@@ -77,7 +77,7 @@ browse now pn channels languages ps mauthor = do
                     { pastePaste =
                         T.unlines
                           (map
-                             (T.take 512)
+                             (T.take 160)
                              (take 5 (T.lines (T.take 1024 (pastePaste latest)))))
                     })))
       ps
