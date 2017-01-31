@@ -62,9 +62,11 @@ browse now pn channels languages ps mauthor = do
                          void " (original by "
                          makeAuthorLink pn authorOriginal
                          ")"
-                     void " in "
-                     H.strong
-                       (showChannel Nothing channels (pasteChannel latest))
+                     case pasteChannel latest of
+                       Just{} -> do void " in "
+                                    H.strong
+                                      (showChannel Nothing channels (pasteChannel latest))
+                       Nothing -> return ()
                      void ", "
                      ago (pasteDate original) now)
                (H.a !. "browse-paste-link" ! A.href (toValue ("/" ++ show (pasteId original))))
