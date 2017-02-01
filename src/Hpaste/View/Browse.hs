@@ -71,7 +71,9 @@ browse now pn channels languages ps mauthor = do
                              void " in "
                              (a !
                               hrefURI
-                                (updateUrlParam "channel" (T.unpack (T.drop 1 (channelName channel))) $
+                                (updateUrlParam
+                                   "channel"
+                                   (T.unpack (T.drop 1 (channelName channel))) $
                                  updateUrlParam "pastes_page" "0" $ pnURI pn))
                                (H.strong
                                   (showChannel
@@ -93,9 +95,16 @@ browse now pn channels languages ps mauthor = do
                     latest
                     { pastePaste =
                         T.unlines
-                          (map
-                             (T.take 160)
-                             (take 5 (T.lines (T.take 1024 (pastePaste latest)))))
+                          (reverse
+                             (dropWhile
+                                T.null
+                                (reverse
+                                   (map
+                                      (T.take 160)
+                                      (take
+                                         5
+                                         (T.lines
+                                            (T.take 1024 (pastePaste latest))))))))
                     })))
       ps
     pagination pn {pnPn = (pnPn pn) {pnShowDesc = False}}
