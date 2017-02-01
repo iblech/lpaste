@@ -95,16 +95,12 @@ browse now pn channels languages ps mauthor = do
                     latest
                     { pastePaste =
                         T.unlines
-                          (reverse
-                             (dropWhile
-                                T.null
-                                (reverse
-                                   (map
-                                      (T.take 160)
-                                      (take
-                                         5
-                                         (T.lines
-                                            (T.take 1024 (pastePaste latest))))))))
+                          (map
+                             (T.take 160)
+                             (take
+                                5
+                                (T.lines
+                                   (T.take 1024 (pastePaste latest)))))
                     })))
       ps
     pagination pn {pnPn = (pnPn pn) {pnShowDesc = False}}
