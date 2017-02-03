@@ -24,9 +24,8 @@ data NewStyle = NewPaste | AnnotatePaste | EditPaste
  deriving Eq
 
 -- | Make a new paste.
-handle :: NewStyle -> HPCtrl ()
-handle style = do
-  spamDB <- liftIO (readDB "spam.db")
+handle :: SpamDB -> NewStyle -> HPCtrl ()
+handle spamDB style = do
   chans <- model $ getChannels
   langs <- model $ getLanguages
   defChan <- fmap decodeUtf8 <$> getParam "channel"

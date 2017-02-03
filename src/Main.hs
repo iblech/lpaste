@@ -62,14 +62,15 @@ main = do
       announces <- newAnnouncer (configAnnounce config)
       pool <- newPool (configPostgres config)
       setUnicodeLocale "en_US"
-      httpServe server (serve config pool announces)
+      spamDB <-  (readDB "spam.db")
+      httpServe server (serve spamDB config pool announces)
     _ -> error "args: /path/to/config.ini [spam generate]"
   where
     server = setPort 10000 defaultConfig
 
 -- | Serve the controllers.
-serve :: Config -> Pool -> Announcer -> Snap ()
-serve config pool ans = route routes where
+serve :: SpamDB -> Config -> Pool -> Announcer -> Snap ()
+serve spamDB config pool ans = route routes where
   routes = [("/css/",serveDirectory "static/css")
            ,("/js/amelie.hs.js",run Script.handle)
            ,("/js/",serveDirectory "static/js")
@@ -81,10 +82,10 @@ serve config pool ans = route routes where
            ,("/revision/:id",run (Paste.handle True))
            ,("/report/:id",run Report.handle)
            ,("/reported",run Reported.handle)
-           ,("/new",run (New.handle New.NewPaste))
-           ,("/annotate/:id",run (New.handle New.AnnotatePaste))
-           ,("/edit/:id",run (New.handle New.EditPaste))
-           ,("/new/:channel",run (New.handle New.NewPaste))
+           ,("/new",run (New.handle spamDB New.NewPaste))
+           ,("/annotate/:id",run (New.handle spamDB New.AnnotatePaste))
+           ,("/edit/:id",run (New.handle spamDB New.EditPaste))
+           ,("/new/:channel",run (New.handle spamDB New.NewPaste))
            ,("/browse",run Browse.handle)
            ,("/activity",run Activity.handle)
            ,("/diff/:this/:that",run Diff.handle)
