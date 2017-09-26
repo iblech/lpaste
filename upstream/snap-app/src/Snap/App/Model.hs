@@ -21,8 +21,10 @@ module Snap.App.Model
 
 import           Control.Concurrent
 import           Control.Monad.CatchIO as E
-import           Control.Monad.Env                       (env)
+import           Control.Monad.Env (env)
 import           Control.Monad.Reader
+import           Data.ByteString (ByteString)
+import qualified Data.ByteString.Char8 as S8
 import           Data.String
 import qualified Database.PostgreSQL.Simple as DB
 import           Database.PostgreSQL.Simple hiding (query)
@@ -45,6 +47,8 @@ model = liftModel
 query :: (ToRow ps,FromRow r) => [String] -> ps -> Model c s [r]
 query q ps = do
   conn <- env modelStateConn
+  fmt <- liftIO (formatQuery conn (fromString (unlines q ++ ";")) ps)
+  -- liftIO (S8.putStrLn fmt)
   Model $ ReaderT (\_ -> DB.query conn (fromString (unlines q)) ps)
 
 -- | Query a single field from a single result.
@@ -98,8 +102,7 @@ pconnect (Pool var) = liftIO $ do
 -- | Restore a connection to the pool.
 restore :: MonadIO m => Pool -> Connection -> m ()
 restore (Pool var) conn = liftIO $ do
-  modifyMVar_ var $ \state -> do
-    return state { poolConnections = conn : poolConnections state }
+  close conn
 
 -- | Use the connection pool.
 withPoolConnection :: (MonadCatchIO m,MonadIO m) => Pool -> (Connection -> m a) -> m ()
