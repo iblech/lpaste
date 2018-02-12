@@ -76,7 +76,7 @@ foot = H.div ! aClass "footer" $ p $
   //
   lnk "https://haskell.org/" "Haskell.org"
   //
-  lnk "http://planet.haskell.org/" "Planet Haskell"
+  lnk "https://planet.haskell.org/" "Planet Haskell"
 
     where lnk url t = href (url :: String) (t :: String)
           left // right = do _ <- left; (" / " :: Markup); right
